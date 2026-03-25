@@ -20,8 +20,8 @@ pub struct PluginYaml {
     /// Absent = pure Skill plugin (no compilation needed).
     #[serde(default)]
     pub build: Option<BuildConfig>,
-    #[serde(default)]
-    pub permissions: Option<PermissionsDecl>,
+    // permissions removed: AI review auto-detects permissions from SKILL.md + source code.
+    // Developers should not need to maintain a manual permission declaration.
     #[serde(default)]
     pub extra: Option<ExtraDecl>,
 }
@@ -78,36 +78,6 @@ pub struct BinaryDecl {
     pub checksums_asset: Option<String>,
     #[serde(default)]
     pub install_dir: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PermissionsDecl {
-    #[serde(default)]
-    pub wallet: Option<WalletPerms>,
-    #[serde(default)]
-    pub network: Option<NetworkPerms>,
-    #[serde(default)]
-    pub chains: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct WalletPerms {
-    #[serde(default)]
-    pub read_balance: bool,
-    #[serde(default)]
-    pub send_transaction: bool,
-    #[serde(default)]
-    pub sign_message: bool,
-    #[serde(default)]
-    pub contract_call: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct NetworkPerms {
-    #[serde(default)]
-    pub api_calls: Vec<String>,
-    #[serde(default)]
-    pub onchainos_commands: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

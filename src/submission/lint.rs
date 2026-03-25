@@ -145,8 +145,7 @@ pub fn lint_submission(submission_dir: &Path) -> Result<LintReport> {
     // ── 11. Components validation ─────────────────────────────────
     check_components(&plugin, submission_dir, &mut diags);
 
-    // ── 11. Permissions validation ────────────────────────────────
-    check_permissions(&plugin, &mut diags);
+    // permissions removed: AI review (Phase 3) auto-detects from content.
 
     // ── 12. Extra / risk_level validation ─────────────────────────
     if let Some(ref extra) = plugin.extra {
@@ -477,56 +476,6 @@ fn check_components(plugin: &PluginYaml, dir: &Path, diags: &mut Vec<LintDiag>) 
     }
 }
 
-fn check_permissions(plugin: &PluginYaml, diags: &mut Vec<LintDiag>) {
-    if plugin.permissions.is_none() {
-        diags.push(LintDiag {
-            level: DiagLevel::Error,
-            code: "E065",
-            message: "permissions field is required — declare what your plugin can do"
-                .to_string(),
-        });
-        return;
-    }
-
-    let perms = plugin.permissions.as_ref().unwrap();
-
-    if let Some(ref wallet) = perms.wallet {
-        if wallet.send_transaction {
-            diags.push(LintDiag {
-                level: DiagLevel::Warning,
-                code: "W065",
-                message:
-                    "wallet.send_transaction is true — this plugin can initiate transfers. \
-                     Community Developer plugins cannot use this permission on first submission."
-                        .to_string(),
-            });
-        }
-        if wallet.contract_call {
-            diags.push(LintDiag {
-                level: DiagLevel::Warning,
-                code: "W066",
-                message:
-                    "wallet.contract_call is true — this plugin can call smart contracts. \
-                     Community Developer plugins cannot use this permission on first submission."
-                        .to_string(),
-            });
-        }
-    }
-
-    if perms.chains.is_empty() {
-        diags.push(LintDiag {
-            level: DiagLevel::Warning,
-            code: "W067",
-            message:
-                "permissions.chains is empty — declare which chains your plugin operates on"
-                    .to_string(),
-        });
-    }
-
-    // Cross-check: if SKILL.md references onchainos commands not listed in permissions
-    // (done in check_skill_md via check_onchainos_command_consistency)
-}
-
 fn check_file_sizes(dir: &Path, diags: &mut Vec<LintDiag>) {
     const MAX_SINGLE_FILE: u64 = 100 * 1024; // 100 KB
     const MAX_TOTAL: u64 = 1024 * 1024; // 1 MB
@@ -631,10 +580,7 @@ fn check_skill_md(plugin: &PluginYaml, dir: &Path, diags: &mut Vec<LintDiag>) {
     check_dangerous_commands_confirmation(&content, diags);
 
     // ── External URL safety analysis ─────────────────────────────
-    check_external_urls(&content, plugin, diags);
-
-    // ── onchainos command cross-check ────────────────────────────
-    check_onchainos_command_consistency(&content, plugin, diags);
+    check_external_urls(&content, diags);
 }
 
 fn check_prompt_injection(content: &str, diags: &mut Vec<LintDiag>) {
@@ -814,8 +760,10 @@ fn check_dangerous_commands_confirmation(content: &str, diags: &mut Vec<LintDiag
 /// 1. Safe: GitHub/docs links used as references (OK)
 /// 2. Declared API: listed in permissions.network.api_calls (OK but flagged)
 /// 3. Undeclared/dangerous: fetching instructions or sending data to unknown URLs (ERROR)
-fn check_external_urls(content: &str, plugin: &PluginYaml, diags: &mut Vec<LintDiag>) {
-    // Extract all URLs from content
+/// Analyze external URLs in SKILL.md for security risks.
+/// No declared API list needed — AI review handles nuanced URL analysis.
+/// Lint only catches the most dangerous patterns (remote injection + data exfiltration).
+fn check_external_urls(content: &str, diags: &mut Vec<LintDiag>) {
     let url_re = regex::Regex::new(r#"https?://[^\s\)>\]`"']+"#).unwrap();
     let urls: Vec<&str> = url_re.find_iter(content).map(|m| m.as_str()).collect();
 
@@ -823,7 +771,6 @@ fn check_external_urls(content: &str, plugin: &PluginYaml, diags: &mut Vec<LintD
         return;
     }
 
-    // Safe domains (documentation, known platforms)
     let safe_domains = [
         "github.com",
         "raw.githubusercontent.com",
@@ -832,63 +779,26 @@ fn check_external_urls(content: &str, plugin: &PluginYaml, diags: &mut Vec<LintD
         "onchainos.com",
     ];
 
-    // Declared API domains
-    let declared_apis: Vec<&str> = plugin
-        .permissions
-        .as_ref()
-        .and_then(|p| p.network.as_ref())
-        .map(|n| n.api_calls.iter().map(|s| s.as_str()).collect())
-        .unwrap_or_default();
-
-    // Dangerous instruction patterns near URLs
     let lower = content.to_lowercase();
+
     let fetch_patterns = [
-        "download from",
-        "fetch from",
-        "load from",
-        "get from",
-        "retrieve from",
-        "pull from",
-        "import from",
-        "download instructions",
-        "fetch instructions",
-        "load prompt",
-        "load config",
-        "load script",
-        "execute from",
-        "run from",
+        "download from", "fetch from", "load from", "get from",
+        "retrieve from", "pull from", "import from",
+        "download instructions", "fetch instructions",
+        "load prompt", "load config", "load script",
+        "execute from", "run from",
     ];
     let exfil_patterns = [
-        "send to",
-        "post to",
-        "upload to",
-        "report to",
-        "transmit to",
-        "forward to",
-        "send wallet",
-        "send address",
-        "send balance",
-        "track user",
+        "send to", "post to", "upload to", "report to",
+        "transmit to", "forward to",
+        "send wallet", "send address", "send balance", "track user",
     ];
 
-    let mut undeclared_urls: Vec<&str> = Vec::new();
-
-    for url in &urls {
-        let is_safe = safe_domains.iter().any(|d| url.contains(d));
-        let is_declared = declared_apis.iter().any(|d| url.contains(d));
-
-        if !is_safe && !is_declared {
-            undeclared_urls.push(url);
-        }
-    }
-
-    // Check for remote instruction loading (most dangerous)
+    // Check for remote instruction loading
     for pattern in &fetch_patterns {
         if lower.contains(pattern) {
-            // Check if it's near any URL
             for url in &urls {
-                let safe = safe_domains.iter().any(|d| url.contains(d));
-                if !safe {
+                if !safe_domains.iter().any(|d| url.contains(d)) {
                     diags.push(LintDiag {
                         level: DiagLevel::Error,
                         code: "E140",
@@ -910,8 +820,7 @@ fn check_external_urls(content: &str, plugin: &PluginYaml, diags: &mut Vec<LintD
     for pattern in &exfil_patterns {
         if lower.contains(pattern) {
             for url in &urls {
-                let safe = safe_domains.iter().any(|d| url.contains(d));
-                if !safe {
+                if !safe_domains.iter().any(|d| url.contains(d)) {
                     diags.push(LintDiag {
                         level: DiagLevel::Error,
                         code: "E141",
@@ -928,69 +837,24 @@ fn check_external_urls(content: &str, plugin: &PluginYaml, diags: &mut Vec<LintD
         }
     }
 
-    // Warn about undeclared URLs (even without fetch/send patterns)
-    if !undeclared_urls.is_empty() {
-        let urls_display: Vec<String> = undeclared_urls
-            .iter()
-            .take(5)
-            .map(|u| format!("'{}'", u))
-            .collect();
+    // Warn about any non-safe external URLs (AI review will analyze in detail)
+    let external_urls: Vec<&&str> = urls
+        .iter()
+        .filter(|u| !safe_domains.iter().any(|d| u.contains(d)))
+        .collect();
 
+    if !external_urls.is_empty() {
+        let display: Vec<String> = external_urls.iter().take(5).map(|u| format!("'{}'", u)).collect();
         diags.push(LintDiag {
             level: DiagLevel::Warning,
             code: "W140",
             message: format!(
-                "SKILL.md references {} external URL(s) not declared in \
-                 permissions.network.api_calls: {}. \
-                 Declare them in plugin.yaml or remove if not needed.",
-                undeclared_urls.len(),
-                urls_display.join(", ")
+                "SKILL.md references {} external URL(s): {}. \
+                 AI review will analyze these for security risks.",
+                external_urls.len(),
+                display.join(", ")
             ),
         });
-    }
-}
-
-/// Cross-check: find `onchainos <subcommand>` references in SKILL.md and
-/// verify they are listed in permissions.network.onchainos_commands.
-fn check_onchainos_command_consistency(
-    content: &str,
-    plugin: &PluginYaml,
-    diags: &mut Vec<LintDiag>,
-) {
-    let re = regex::Regex::new(r"onchainos\s+(\w+(?:\s+\w+)?)").unwrap();
-
-    let declared: Vec<&str> = plugin
-        .permissions
-        .as_ref()
-        .and_then(|p| p.network.as_ref())
-        .map(|n| n.onchainos_commands.iter().map(|s| s.as_str()).collect())
-        .unwrap_or_default();
-
-    let mut found_commands: Vec<String> = Vec::new();
-
-    for cap in re.captures_iter(content) {
-        let cmd = cap[1].trim().to_string();
-        // Skip common non-command references like "onchainos CLI"
-        if ["cli", "is", "the", "a", "an", "or", "and"].contains(&cmd.as_str()) {
-            continue;
-        }
-        if !found_commands.contains(&cmd) {
-            found_commands.push(cmd);
-        }
-    }
-
-    for cmd in &found_commands {
-        if !declared.iter().any(|d| cmd.starts_with(d) || d.starts_with(cmd.as_str())) {
-            diags.push(LintDiag {
-                level: DiagLevel::Warning,
-                code: "W110",
-                message: format!(
-                    "SKILL.md references 'onchainos {}' but it is not listed in \
-                     permissions.network.onchainos_commands",
-                    cmd
-                ),
-            });
-        }
     }
 }
 

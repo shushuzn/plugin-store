@@ -63,19 +63,9 @@ components:
   #   asset_pattern: "my-binary-{{target}}"
   #   checksums_asset: checksums.txt
 
-permissions:
-  wallet:
-    read_balance: false
-    send_transaction: false
-    sign_message: false
-    contract_call: false
-  network:
-    api_calls: []
-    onchainos_commands:
-      - "token search"
-      - "market price"
-  chains:
-    - ethereum
+# extra:
+#   protocols: []
+#   risk_level: low              # low | medium | high
 "#
         ),
     )?;
