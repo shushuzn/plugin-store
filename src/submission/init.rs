@@ -53,13 +53,8 @@ tags:
 components:
   skill:
     dir: skills/{name}
-  # mcp:
-  #   type: binary   # node | python | binary
-  #   command: my-server
-  #   args: ["--stdio"]
-  #   env: [API_KEY]
-  # binary:
-  #   repo: your-org/your-repo
+  # binary:                          # Uncomment if providing a compiled binary
+  #   repo: your-org/your-repo       # (requires build section + Verified Third Party)
   #   asset_pattern: "my-binary-{{target}}"
   #   checksums_asset: checksums.txt
 
