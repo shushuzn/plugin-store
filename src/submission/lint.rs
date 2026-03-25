@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 use super::plugin_yaml::{
-    PluginYaml, VALID_CATEGORIES, VALID_LICENSES, VALID_MCP_TYPES,
+    PluginYaml, VALID_CATEGORIES, VALID_LICENSES,
     VALID_BUILD_LANGS, FORBIDDEN_BINARY_EXTENSIONS,
 };
 
@@ -142,7 +142,7 @@ pub fn lint_submission(submission_dir: &Path) -> Result<LintReport> {
     // ── 10. Tag content validation ─────────────────────────────────
     check_tags(&plugin, &mut diags);
 
-    // ── 11. Community plugins: MCP and Binary are forbidden ────────
+    // ── 11. Community plugins: Binary without build is forbidden ───
     check_community_component_restrictions(&plugin, &mut diags);
 
     // ── 11. Components validation ─────────────────────────────────
@@ -307,12 +307,6 @@ fn check_license(license: &str, dir: &Path, diags: &mut Vec<LintDiag>) {
     }
 }
 
-/// MCP and Binary components require a `build` section so that our CI can
-/// compile the source code. Submitting MCP/Binary without build config means
-/// the developer wants us to trust a pre-built binary — which we don't.
-///
-/// With `build`: Verified Third Party flow (source audit + platform compilation).
-/// Without `build`: Community Developer flow (Skill only).
 /// Validate tags for format rules and forbidden content.
 fn check_tags(plugin: &PluginYaml, diags: &mut Vec<LintDiag>) {
     if plugin.tags.is_empty() {
@@ -441,31 +435,16 @@ fn check_tags(plugin: &PluginYaml, diags: &mut Vec<LintDiag>) {
     }
 }
 
+/// Binary components require a `build` section — we compile from source.
 fn check_community_component_restrictions(plugin: &PluginYaml, diags: &mut Vec<LintDiag>) {
-    let has_build = plugin.has_build();
-
-    if plugin.components.mcp.is_some() && !has_build {
-        diags.push(LintDiag {
-            level: DiagLevel::Error,
-            code: "E110",
-            message:
-                "MCP component requires a `build` section in plugin.yaml — \
-                 we compile your source code, you don't submit pre-built binaries. \
-                 Add build.lang, build.source_dir, and build.binary_name. \
-                 See the developer guide for examples."
-                    .to_string(),
-        });
-    }
-
-    if plugin.components.binary.is_some() && !has_build {
+    if plugin.components.binary.is_some() && !plugin.has_build() {
         diags.push(LintDiag {
             level: DiagLevel::Error,
             code: "E111",
             message:
                 "Binary component requires a `build` section in plugin.yaml — \
                  we compile your source code, you don't submit pre-built binaries. \
-                 Add build.lang, build.source_dir, and build.binary_name. \
-                 See the developer guide for examples."
+                 Add build.lang, build.source_repo, and build.binary_name."
                     .to_string(),
         });
     }
@@ -473,14 +452,13 @@ fn check_community_component_restrictions(plugin: &PluginYaml, diags: &mut Vec<L
 
 fn check_components(plugin: &PluginYaml, dir: &Path, diags: &mut Vec<LintDiag>) {
     let has_any = plugin.components.has_skill()
-        || plugin.components.mcp.is_some()
         || plugin.components.binary.is_some();
 
     if !has_any {
         diags.push(LintDiag {
             level: DiagLevel::Error,
             code: "E050",
-            message: "at least one component (skill/skills, mcp, or binary) must be declared"
+            message: "at least one component (skill/skills or binary) must be declared"
                 .to_string(),
         });
     }
@@ -529,55 +507,6 @@ fn check_components(plugin: &PluginYaml, dir: &Path, diags: &mut Vec<LintDiag>) 
                     "skill entry has no dir, path, or repo"
                         .to_string(),
             });
-        }
-    }
-
-    // ── MCP component ────────────────────────────────────────────
-    if let Some(ref mcp) = plugin.components.mcp {
-        if !VALID_MCP_TYPES.contains(&mcp.mcp_type.as_str()) {
-            diags.push(LintDiag {
-                level: DiagLevel::Error,
-                code: "E055",
-                message: format!(
-                    "mcp.type '{}' invalid. Valid: {}",
-                    mcp.mcp_type,
-                    VALID_MCP_TYPES.join(", ")
-                ),
-            });
-        }
-        if mcp.command.trim().is_empty() {
-            diags.push(LintDiag {
-                level: DiagLevel::Error,
-                code: "E056",
-                message: "mcp.command is empty".to_string(),
-            });
-        }
-        // Shell injection check
-        let dangerous_chars = ['|', ';', '&', '$', '`', '(', ')', '{', '}'];
-        if mcp
-            .command
-            .contains(|c: char| dangerous_chars.contains(&c))
-        {
-            diags.push(LintDiag {
-                level: DiagLevel::Error,
-                code: "E057",
-                message: format!(
-                    "mcp.command '{}' contains shell metacharacters — possible command injection",
-                    mcp.command
-                ),
-            });
-        }
-        for arg in &mcp.args {
-            if arg.contains(|c: char| dangerous_chars.contains(&c)) {
-                diags.push(LintDiag {
-                    level: DiagLevel::Warning,
-                    code: "W057",
-                    message: format!(
-                        "mcp.args '{}' contains shell metacharacters",
-                        arg
-                    ),
-                });
-            }
         }
     }
 
@@ -1034,7 +963,7 @@ fn check_build_config(plugin: &PluginYaml, _dir: &Path, diags: &mut Vec<LintDiag
             message:
                 "plugins with build config must also include a Skill component — \
                  SKILL.md is the entry point that tells the AI agent how to use \
-                 your MCP server or binary."
+                 your binary."
                     .to_string(),
         });
     }
@@ -1079,8 +1008,8 @@ fn check_build_config(plugin: &PluginYaml, _dir: &Path, diags: &mut Vec<LintDiag
         });
     }
 
-    // binary_name is required for compiled languages
-    if build.lang != "node" && build.binary_name.is_none() {
+    // binary_name is required for all compiled languages
+    if build.binary_name.is_none() {
         diags.push(LintDiag {
             level: DiagLevel::Error,
             code: "E124",
@@ -1102,18 +1031,6 @@ fn check_build_config(plugin: &PluginYaml, _dir: &Path, diags: &mut Vec<LintDiag
                  specify the entry file (e.g. src/index.ts or src/main.py)",
                 build.lang
             ),
-        });
-    }
-
-    // Node.js requires npm_scope
-    if build.lang == "node" && build.npm_scope.is_none() {
-        diags.push(LintDiag {
-            level: DiagLevel::Warning,
-            code: "W125",
-            message:
-                "build.npm_scope not set for Node.js plugin — \
-                 defaults to @plugin-store. Set explicitly if you have a preferred scope."
-                    .to_string(),
         });
     }
 }
