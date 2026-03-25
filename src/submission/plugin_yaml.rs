@@ -27,8 +27,6 @@ pub struct PluginYaml {
     /// Lint uses this to distinguish expected vs unexpected external URLs.
     #[serde(default)]
     pub api_calls: Vec<String>,
-    #[serde(default)]
-    pub extra: Option<ExtraDecl>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -109,14 +107,6 @@ pub struct BinaryDecl {
     pub install_dir: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ExtraDecl {
-    #[serde(default)]
-    pub protocols: Vec<String>,
-    #[serde(default)]
-    pub risk_level: Option<String>,
-}
-
 /// Build configuration — tells our CI how to compile the plugin's source code.
 ///
 /// Source code lives in the developer's own GitHub repo, referenced by
@@ -187,9 +177,6 @@ pub const VALID_CATEGORIES: &[&str] = &[
     "wallet",
     "nft",
 ];
-
-/// Valid risk levels.
-pub const VALID_RISK_LEVELS: &[&str] = &["low", "medium", "high"];
 
 /// Valid MCP types.
 pub const VALID_MCP_TYPES: &[&str] = &["node", "python", "binary"];

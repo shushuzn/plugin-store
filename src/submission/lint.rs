@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 use super::plugin_yaml::{
-    PluginYaml, VALID_CATEGORIES, VALID_LICENSES, VALID_MCP_TYPES, VALID_RISK_LEVELS,
+    PluginYaml, VALID_CATEGORIES, VALID_LICENSES, VALID_MCP_TYPES,
     VALID_BUILD_LANGS, FORBIDDEN_BINARY_EXTENSIONS,
 };
 
@@ -148,24 +148,7 @@ pub fn lint_submission(submission_dir: &Path) -> Result<LintReport> {
     // ── 11. Components validation ─────────────────────────────────
     check_components(&plugin, submission_dir, &mut diags);
 
-    // permissions removed: AI review (Phase 3) auto-detects from content.
 
-    // ── 12. Extra / risk_level validation ─────────────────────────
-    if let Some(ref extra) = plugin.extra {
-        if let Some(ref rl) = extra.risk_level {
-            if !VALID_RISK_LEVELS.contains(&rl.as_str()) {
-                diags.push(LintDiag {
-                    level: DiagLevel::Error,
-                    code: "E070",
-                    message: format!(
-                        "invalid risk_level '{}'. Valid: {}",
-                        rl,
-                        VALID_RISK_LEVELS.join(", ")
-                    ),
-                });
-            }
-        }
-    }
 
     // ── 13. File size limits ──────────────────────────────────────
     check_file_sizes(submission_dir, &mut diags);

@@ -72,10 +72,6 @@ chains:
 api_calls: []
 # api_calls:
 #   - "api.example.com"
-
-# extra:
-#   protocols: []
-#   risk_level: low              # low | medium | high
 "#
         ),
     )?;
