@@ -91,6 +91,36 @@
         "risk_level": "medium"
       },
       "link": "https://github.com/Polymarket/agent-skills"
+    },
+    {
+      "name": "sol-token-guard",
+      "alias": "Solana Token Safety Guard",
+      "version": "1.0.0",
+      "description": "Comprehensive Solana token safety analysis — security scan, holder distribution, and risk scoring",
+      "author": {
+        "name": "ganlinux"
+      },
+      "category": "security",
+      "tags": [
+        "solana",
+        "security",
+        "token",
+        "analytics",
+        "risk"
+      ],
+      "type": "community-developer",
+      "components": {
+        "skill": {
+          "repo": "okx/plugin-store-community",
+          "dir": "skills/sol-token-guard",
+          "commit": "cda7c5dce31c2d405e7b18852aaadf553f42ea6d"
+        }
+      },
+      "extra": {
+        "protocols": [],
+        "risk_level": "low"
+      },
+      "link": "https://github.com/okx/plugin-store-community"
     }
   ]
 }
