@@ -1,6 +1,7 @@
 use anyhow::{bail, Context, Result};
 use sha2::{Sha256, Digest};
 use std::path::PathBuf;
+use std::time::Duration;
 use crate::utils::platform::current_target;
 
 pub struct BinaryInstaller;
@@ -20,7 +21,11 @@ impl BinaryInstaller {
         std::fs::create_dir_all(&install_path)?;
         let binary_path = install_path.join(&asset_name);
 
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .connect_timeout(Duration::from_secs(15))
+            .timeout(Duration::from_secs(300))
+            .build()?;
+
         let release_url = if let Some(tag) = release_tag {
             format!(
                 "https://api.github.com/repos/{}/releases/tags/{}",
@@ -32,12 +37,15 @@ impl BinaryInstaller {
                 repo
             )
         };
+
+        println!("  Fetching release info...");
         let release: serde_json::Value = client
             .get(&release_url)
             .header("User-Agent", "plugin-store")
             .send()
             .await?
-            .error_for_status()?
+            .error_for_status()
+            .context(format!("Failed to fetch release from {}", release_url))?
             .json()
             .await?;
 
@@ -51,12 +59,23 @@ impl BinaryInstaller {
             .as_str()
             .context("No download URL")?;
 
+        let size_bytes = binary_asset["size"].as_u64().unwrap_or(0);
+        let size_display = if size_bytes > 1_048_576 {
+            format!("{:.1} MB", size_bytes as f64 / 1_048_576.0)
+        } else if size_bytes > 0 {
+            format!("{:.0} KB", size_bytes as f64 / 1024.0)
+        } else {
+            "unknown size".to_string()
+        };
+        println!("  Downloading {} ({})...", asset_name, size_display);
+
         let binary_bytes = client
             .get(download_url)
             .header("User-Agent", "plugin-store")
             .send()
             .await?
-            .error_for_status()?
+            .error_for_status()
+            .context(format!("Failed to download {}", asset_name))?
             .bytes()
             .await?;
 
@@ -81,6 +100,7 @@ impl BinaryInstaller {
                     if actual_hash != expected_hash {
                         bail!("Checksum verification failed. Expected: {}, Got: {}", expected_hash, actual_hash);
                     }
+                    println!("  Checksum verified ✓");
                 }
             }
         }

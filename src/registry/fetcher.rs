@@ -72,7 +72,10 @@ impl RegistryFetcher {
     }
 
     async fn fetch_remote(&self) -> Result<Registry> {
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(30))
+            .build()?;
         let resp = client
             .get(&self.registry_url)
             .header("User-Agent", "plugin-store")

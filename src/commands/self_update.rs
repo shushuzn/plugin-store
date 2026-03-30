@@ -8,7 +8,10 @@ pub async fn execute() -> Result<()> {
     println!("Checking for updates...");
     println!("  Current version: {}", CURRENT_VERSION);
 
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .connect_timeout(std::time::Duration::from_secs(10))
+        .timeout(std::time::Duration::from_secs(120))
+        .build()?;
 
     // Fetch latest release from GitHub
     let repo = format!("{}/{}", plugin_store::config::GITHUB_OWNER, plugin_store::config::CLI_REPO);
