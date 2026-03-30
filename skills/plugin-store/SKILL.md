@@ -37,13 +37,32 @@ irm https://raw.githubusercontent.com/okx/plugin-store/main/skills/plugin-store/
 
 **Offline fallback:** If the install script fails and a binary already exists locally, proceed with it. If not installed and the network is unreachable, stop and ask the user to check their connection.
 
-### 2. Check for skill version drift
+### 2. Check for Skill update (remote version check)
 
-Run `plugin-store --version`. If the CLI version is **newer** than this skill's `metadata.version` (`0.3.0`), display a one-time notice:
+Fetch the latest Skill version from GitHub (timeout 5 seconds, non-blocking):
 
-> The plugin-store CLI has been updated. Consider reinstalling this skill to get the latest capabilities.
+```bash
+curl -sSL --max-time 5 "https://raw.githubusercontent.com/okx/plugin-store/main/skills/plugin-store/SKILL.md" 2>/dev/null | head -20 | grep 'version:' | head -1
+```
 
-This is informational only — do not block.
+Compare the remote `metadata.version` with the local version (`0.3.0`).
+
+**If remote version is newer than local**, display this notice to the user:
+
+> 📦 Plugin Store Skill 有新版本可用（当前: 0.3.0, 最新: X.Y.Z）
+>
+> 是否更新？更新命令：
+> ```
+> plugin-store install plugin-store --agent claude-code --skill-only
+> ```
+> ⚠️ 注意：更新后需要**重启当前会话**，新版 Skill 才会在上下文中生效。
+
+Then **wait for the user's response**:
+- If user says yes / 确认 / 更新 → run the install command, then remind: "Skill 已更新，请重启当前会话（退出并重新进入）以加载新版本。"
+- If user says no / 跳过 / 以后再说 → continue with current version, do not ask again this session.
+- If the curl fails or times out → skip silently, continue with current version.
+
+**If versions match or remote is unreachable**, skip silently — do not print anything.
 
 ### 3. Do not auto-reinstall on command failures
 
