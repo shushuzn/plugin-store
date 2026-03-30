@@ -93,6 +93,30 @@
       "link": "https://github.com/Polymarket/agent-skills"
     },
     {
+      "name": "eth-gas-monitor",
+      "version": "1.0.0",
+      "description": "Monitor Ethereum gas prices in real-time and estimate transaction costs using onchainos",
+      "author": {
+        "name": "yz06276"
+      },
+      "category": "analytics",
+      "tags": [
+        "ethereum",
+        "gas",
+        "analytics"
+      ],
+      "type": "community-developer",
+      "components": {
+        "skill": {
+          "repo": "okx/plugin-store-community",
+          "dir": "skills/eth-gas-monitor",
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
+        }
+      },
+      "link": "https://github.com/okx/plugin-store-community",
+      "alias": "ETH Gas Monitor"
+    },
+    {
       "name": "eth-gas-tracker",
       "version": "1.0.0",
       "description": "Track Ethereum gas prices and estimate transaction costs using onchainos",
@@ -110,7 +134,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/eth-gas-tracker",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         }
       },
       "link": "https://github.com/okx/plugin-store-community",
@@ -134,7 +158,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/go-echo-cli",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "binary": {
           "repo": "okx/plugin-store",
@@ -169,7 +193,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/node-echo-cli",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "npm": {
           "source_repo": "yz06276/node-echo-cli",
@@ -203,7 +227,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/python-echo-cli",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "python": {
           "source_repo": "yz06276/python-echo-cli",
@@ -238,7 +262,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/rust-echo-cli",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "binary": {
           "repo": "okx/plugin-store",
@@ -274,7 +298,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/signal-tracker",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "binary": {
           "repo": "okx/plugin-store",
@@ -312,7 +336,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/sol-token-guard",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         }
       },
       "link": "https://github.com/okx/plugin-store-community",
@@ -336,7 +360,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/ts-echo-cli",
-          "commit": "667cab32a16fc80c66e4590f0fd5a0889b367c7d"
+          "commit": "11004f25756cf8c4fb2d47eee3c98871c7b1323d"
         },
         "npm": {
           "source_repo": "yz06276/ts-echo-cli",
