@@ -20,7 +20,10 @@ impl SkillInstaller {
             "https://raw.githubusercontent.com/{}/{}/{}",
             repo, git_ref, path
         );
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(60))
+            .build()?;
         let resp = client
             .get(&url)
             .header("User-Agent", "plugin-store")
@@ -47,7 +50,10 @@ impl SkillInstaller {
             "https://api.github.com/repos/{}/git/trees/{}?recursive=1",
             repo, git_ref
         );
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(60))
+            .build()?;
         let resp = client
             .get(&url)
             .header("User-Agent", "plugin-store")
@@ -80,7 +86,10 @@ impl SkillInstaller {
     /// Fallback: download repo ZIP and extract file paths from it.
     async fn fetch_repo_tree_via_zip(repo: &str, git_ref: &str) -> Result<Vec<String>> {
         let url = format!("https://github.com/{}/archive/{}.zip", repo, git_ref);
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .timeout(std::time::Duration::from_secs(60))
+            .build()?;
         let bytes = client
             .get(&url)
             .header("User-Agent", "plugin-store")
