@@ -112,7 +112,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/okx-buildx-hackathon-agent-track",
-          "commit": "7f77d55e630cac9c32021fbaca541e8a62b59768"
+          "commit": "255e0e6ef7229760fa04131455ffcc847beea534"
         }
       },
       "link": "https://github.com/okx/plugin-store-community",
@@ -139,7 +139,7 @@
         "skill": {
           "repo": "okx/plugin-store-community",
           "dir": "skills/smart-money-copy-trade",
-          "commit": "7f77d55e630cac9c32021fbaca541e8a62b59768"
+          "commit": "255e0e6ef7229760fa04131455ffcc847beea534"
         }
       },
       "link": "https://github.com/okx/plugin-store-community",
