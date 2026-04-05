@@ -4,7 +4,21 @@ Discover, install, and build AI agent plugins for DeFi, trading, and Web3.
 
 **Supported platforms:** Claude Code, Cursor, OpenClaw
 
+## Install Plugin Store
+
 ```bash
+npx skills add okx/plugin-store --skill plugin-store
+```
+
+This installs the Plugin Store skill into your AI agent, enabling plugin discovery and management.
+
+## Install a Plugin
+
+```bash
+# Browse all available plugins
+npx skills add okx/plugin-store
+
+# Install a specific plugin
 npx skills add okx/plugin-store --skill <plugin-name>
 ```
 
@@ -47,16 +61,6 @@ npx skills add okx/plugin-store --skill <plugin-name>
 | Plugin developer | [FOR-DEVELOPERS.md](docs/FOR-DEVELOPERS.md) |
 | OKX/Partner team | [FOR-PARTNERS.md](docs/FOR-PARTNERS.md) |
 | Reviewing standards | [REVIEW-GUIDELINES.md](docs/REVIEW-GUIDELINES.md) |
-
-## Install a Plugin
-
-```bash
-# Browse all available plugins
-npx skills add okx/plugin-store
-
-# Install a specific plugin
-npx skills add okx/plugin-store --skill <plugin-name>
-```
 
 ## Contributing
 
