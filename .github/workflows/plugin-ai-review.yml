@@ -338,23 +338,26 @@ jobs:
             fi
 
             # ── Include local source code (Mode A: direct upload) ──
-            BUILD_DIR=$(python3 -c "
-          import yaml
-          with open('${YAML_FILE}') as f:
-              data = yaml.safe_load(f)
-          build = data.get('build')
-          if build:
-              print(build.get('source_dir', ''))
-          " 2>/dev/null || echo "")
+            # Scan the plugin directory for source files of any supported language.
+            # This covers: Rust (.rs), Go (.go), TypeScript (.ts), JavaScript (.js),
+            # Python (.py), plus config files (Cargo.toml, go.mod, package.json, etc.)
+            LOCAL_SRC_COUNT=$(find "${PLUGIN_DIR}" -type f \
+              \( -name "*.rs" -o -name "*.go" -o -name "*.ts" -o -name "*.js" \
+                 -o -name "*.py" -o -name "*.toml" -o -name "*.mod" -o -name "*.sum" \) \
+              ! -path "*/target/*" ! -path "*/node_modules/*" ! -path "*/.git/*" \
+              | wc -l | tr -d ' ')
 
-            if [ -n "$BUILD_DIR" ] && [ -d "${PLUGIN_DIR}/${BUILD_DIR}" ]; then
+            if [ "$LOCAL_SRC_COUNT" -gt 0 ]; then
               echo ""
               echo "# Source Code (for security review)"
+              echo "> ${LOCAL_SRC_COUNT} source files found in plugin directory"
               echo ""
-              find "${PLUGIN_DIR}/${BUILD_DIR}" -type f \
+              find "${PLUGIN_DIR}" -type f \
                 \( -name "*.rs" -o -name "*.go" -o -name "*.ts" -o -name "*.js" \
                    -o -name "*.py" -o -name "*.toml" -o -name "*.json" -o -name "*.yaml" \
                    -o -name "*.yml" -o -name "*.lock" -o -name "*.mod" -o -name "*.sum" \) \
+                ! -path "*/target/*" ! -path "*/node_modules/*" ! -path "*/.git/*" \
+                ! -name "plugin.yaml" ! -name "plugin.json" \
                 | sort | while read src_file; do
                 REL_PATH=$(echo "$src_file" | sed "s|${PLUGIN_DIR}/||")
                 FILE_LINES=$(wc -l < "$src_file")
