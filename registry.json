@@ -239,6 +239,33 @@
       }
     },
     {
+      "name": "meteora",
+      "version": "0.1.0",
+      "description": "Meteora DLMM plugin for searching pools, getting swap quotes, checking positions, and executing swaps on Solana",
+      "author": {
+        "name": "skylavis-sky"
+      },
+      "category": "utility",
+      "tags": [
+        "solana"
+      ],
+      "type": "official",
+      "components": {
+        "skill": {
+          "repo": "okx/plugin-store",
+          "dir": "skills/meteora"
+        }
+      },
+      "link": "https://github.com/okx/plugin-store",
+      "extra": {
+        "chains": [
+          "solana"
+        ],
+        "protocols": [],
+        "risk_level": "medium"
+      }
+    },
+    {
       "name": "okx-buildx-hackathon-agent-track",
       "version": "1.0.0",
       "description": "AI Hackathon participation guide — registration, wallet setup, project building, submission to Moltbook, voting, and scoring. Apr 1-15, 2026. $14,000 USDT in prizes.",
