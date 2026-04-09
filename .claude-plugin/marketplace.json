@@ -25,15 +25,6 @@
       }
     },
     {
-      "name": "hyperliquid",
-      "description": "Hyperliquid on-chain perpetuals DEX — check positions, get market prices, place and cancel perpetual orders on Hyperliquid L1 (chain_id 999).",
-      "source": "./skills/hyperliquid",
-      "category": "trading-strategy",
-      "author": {
-        "name": "GeoGu360"
-      }
-    },
-    {
       "name": "kamino-lend",
       "description": "Supply, borrow, and manage positions on Kamino Lend — the leading Solana lending protocol",
       "source": "./skills/kamino-lend",
@@ -52,13 +43,9 @@
       }
     },
     {
-      "name": "lido",
-      "description": "Stake ETH with Lido liquid staking protocol to receive stETH",
-      "source": "./skills/lido",
-      "category": "defi-protocol",
-      "author": {
-        "name": "GeoGu360"
-      }
+      "name": "kamino-liquidity",
+      "description": "Plugin: kamino-liquidity",
+      "source": "./skills/kamino-liquidity"
     },
     {
       "name": "meme-trench-scanner",
@@ -86,6 +73,11 @@
       "author": {
         "name": "GeoGu360"
       }
+    },
+    {
+      "name": "pancakeswap",
+      "description": "Swap tokens and manage concentrated liquidity on PancakeSwap V3 on BNB Chain and Base",
+      "source": "./skills/pancakeswap"
     },
     {
       "name": "plugin-store",
