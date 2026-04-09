@@ -124,6 +124,15 @@
       }
     },
     {
+      "name": "pancakeswap-v2",
+      "description": "Swap tokens and provide full-range liquidity on PancakeSwap V2 — the xyk AMM on BSC and Base. Trigger phrases: swap on pancakeswap v2, pancake swap, pcs v2 swap, add liquidity pancakeswap, remove liquidity pancake, pancake amm, pancakeswap v2 quote, check pancake pair.",
+      "source": "./skills/pancakeswap-v2",
+      "category": "utility",
+      "author": {
+        "name": "OKX"
+      }
+    },
+    {
       "name": "pendle",
       "description": "Pendle Finance yield tokenization — buy/sell PT & YT tokens, add/remove liquidity, mint/redeem PT+YT pairs",
       "source": "./skills/pendle",
