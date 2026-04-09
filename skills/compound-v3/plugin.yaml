@@ -25,5 +25,5 @@ build:
 api_calls:
   - "https://ethereum.publicnode.com"
   - "https://base-rpc.publicnode.com"
-  - "https://arb1.arbitrum.io/rpc"
+  - "https://arbitrum-one-rpc.publicnode.com"
   - "https://polygon-rpc.com"
