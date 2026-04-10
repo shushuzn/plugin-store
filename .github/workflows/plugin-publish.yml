@@ -56,6 +56,19 @@ jobs:
       - name: Detect changed plugins
         id: detect
         run: |
+          # workflow_dispatch with rebuild_all: treat ALL plugins as changed
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.rebuild_all }}" = "true" ]; then
+            PLUGINS=$(ls -d skills/*/plugin.yaml 2>/dev/null | xargs -I{} dirname {} | xargs -I{} basename {} | sort -u | tr '\n' ' ' | sed 's/ $//')
+            if [ -z "$PLUGINS" ]; then
+              echo "has_changes=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "changed_plugins=${PLUGINS}" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Rebuild-all mode: ${PLUGINS}"
+            exit 0
+          fi
+
           CHANGED=$(git diff --name-only HEAD~1...HEAD -- 'skills/' || true)
           if [ -z "$CHANGED" ]; then
             echo "has_changes=false" >> "$GITHUB_OUTPUT"
