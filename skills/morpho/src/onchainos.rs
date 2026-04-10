@@ -57,6 +57,30 @@ pub async fn wallet_contract_call(
     Ok(serde_json::from_str(&stdout)?)
 }
 
+/// Poll until a transaction is confirmed on-chain (up to ~15 seconds).
+/// Called after approve --force so the main op simulation sees the updated allowance.
+pub async fn wait_for_tx(tx_hash: &str, rpc_url: &str) -> anyhow::Result<()> {
+    if tx_hash == "0x0000000000000000000000000000000000000000000000000000000000000000" {
+        return Ok(()); // dry-run stub hash — nothing to wait for
+    }
+    let client = reqwest::Client::new();
+    for _ in 0..8 {
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        let body = serde_json::json!({
+            "jsonrpc": "2.0", "method": "eth_getTransactionReceipt",
+            "params": [tx_hash], "id": 1
+        });
+        if let Ok(resp) = client.post(rpc_url).json(&body).send().await {
+            if let Ok(v) = resp.json::<serde_json::Value>().await {
+                if !v["result"].is_null() {
+                    return Ok(());
+                }
+            }
+        }
+    }
+    Ok(()) // proceed anyway after timeout
+}
+
 /// Extract txHash from wallet contract-call response, returning an error if the call failed.
 /// Response format: {"ok":true,"data":{"txHash":"0x..."}}
 pub fn extract_tx_hash_or_err(result: &Value) -> anyhow::Result<String> {
