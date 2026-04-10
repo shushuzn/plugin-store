@@ -38,7 +38,8 @@ jobs:
   gate:
     name: Security gate
     runs-on: ubuntu-latest
-    permissions: {}
+    permissions:
+      pull-requests: read
     outputs:
       safe: ${{ steps.check.outputs.safe }}
     steps:
