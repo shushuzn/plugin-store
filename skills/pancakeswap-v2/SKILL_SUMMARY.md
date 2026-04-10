@@ -2,21 +2,21 @@
 # pancakeswap-v2 -- Skill Summary
 
 ## Overview
-This skill enables interaction with PancakeSwap V2, the constant-product (xyk) automated market maker on BSC and Base networks. It provides comprehensive functionality for token swapping, liquidity provision, and pool data retrieval, with built-in safety features including transaction previews, slippage protection, and explicit user confirmation for all write operations.
+This skill enables interaction with PancakeSwap V2's constant-product automated market maker (AMM) across three major chains: BSC, Base, and Arbitrum One. It provides comprehensive functionality for token swapping, liquidity provision, and pool management using the traditional xyk formula with 0.25% swap fees. The skill handles both read operations (quotes, reserves, balances) and write operations (swaps, liquidity management) with built-in safety measures and transaction confirmation workflows.
 
 ## Usage
-Use voice commands like "swap USDT for CAKE on PancakeSwap V2" or "add liquidity to CAKE/BNB pool" to trigger operations. All write operations require explicit user confirmation after displaying transaction previews via dry-run mode.
+Use this skill for PancakeSwap V2 operations by specifying the desired action, tokens, and amounts. All write operations require user confirmation and support dry-run previews before execution.
 
 ## Commands
 | Command | Description |
 |---------|-------------|
-| `quote` | Get expected swap output amounts and pricing |
+| `quote` | Get expected swap output amounts |
 | `swap` | Execute token swaps with slippage protection |
 | `add-liquidity` | Provide liquidity to earn LP tokens |
-| `remove-liquidity` | Withdraw liquidity by burning LP tokens |
+| `remove-liquidity` | Withdraw liquidity and burn LP tokens |
 | `get-pair` | Look up pair contract addresses |
-| `get-reserves` | Check current pool reserves and ratios |
-| `lp-balance` | View LP token balances for specific pairs |
+| `get-reserves` | Check current pool reserves |
+| `lp-balance` | View LP token balances |
 
 ## Triggers
-Activate this skill when users want to trade tokens, provide liquidity, or check prices on PancakeSwap V2 specifically (not V3). Trigger phrases include "swap on pancakeswap v2", "add liquidity pancakeswap", "pancake amm", and "check pancake pair".
+Activate this skill when users want to swap tokens on PancakeSwap V2, manage liquidity positions, check prices or pool data, or interact with xyk AMM pools on BSC, Base, or Arbitrum networks. Use for V2 operations only, not V3 or concentrated liquidity.
