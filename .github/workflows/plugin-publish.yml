@@ -19,6 +19,13 @@ on:
     branches: [main]
     paths:
       - 'skills/**'
+  workflow_dispatch:
+    inputs:
+      rebuild_all:
+        description: 'Rebuild ALL plugins (force re-create releases)'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
