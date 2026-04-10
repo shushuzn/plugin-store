@@ -40,8 +40,11 @@ src_commit = ""
 
 if os.path.exists(yaml_path):
     try:
-        result = subprocess.run(["yq", ".build.lang // \"\"", yaml_path], capture_output=True, text=True)
-        build_lang = result.stdout.strip()
+        import yaml
+        with open(yaml_path) as f:
+            plugin_data = yaml.safe_load(f) or {}
+        build = plugin_data.get("build", {}) or {}
+        build_lang = build.get("lang", "")
         if build_lang in ("rust", "go"):
             needs_binary = True
         elif build_lang == "python":
@@ -49,16 +52,28 @@ if os.path.exists(yaml_path):
         elif build_lang in ("typescript", "node"):
             needs_npm = True
 
-        result = subprocess.run(["yq", ".build.binary_name // \"\"", yaml_path], capture_output=True, text=True)
-        bin_name = result.stdout.strip() or name
-        result = subprocess.run(["yq", ".version // \"1.0.0\"", yaml_path], capture_output=True, text=True)
-        version = result.stdout.strip()
-        result = subprocess.run(["yq", ".build.source_repo // \"\"", yaml_path], capture_output=True, text=True)
-        src_repo = result.stdout.strip()
-        result = subprocess.run(["yq", ".build.source_commit // \"\"", yaml_path], capture_output=True, text=True)
-        src_commit = result.stdout.strip()
-    except Exception:
-        pass
+        bin_name = build.get("binary_name", "") or name
+        version = str(plugin_data.get("version", "1.0.0"))
+        src_repo = build.get("source_repo", "")
+        src_commit = build.get("source_commit", "")
+    except Exception as e:
+        print(f"  Warning: failed to parse {yaml_path}: {e}")
+        # Fallback to yq if yaml module not available
+        try:
+            result = subprocess.run(["yq", ".build.lang // \"\"", yaml_path], capture_output=True, text=True)
+            build_lang = result.stdout.strip()
+            if build_lang in ("rust", "go"):
+                needs_binary = True
+            result = subprocess.run(["yq", ".build.binary_name // \"\"", yaml_path], capture_output=True, text=True)
+            bin_name = result.stdout.strip() or name
+            result = subprocess.run(["yq", ".version // \"1.0.0\"", yaml_path], capture_output=True, text=True)
+            version = result.stdout.strip()
+            result = subprocess.run(["yq", ".build.source_repo // \"\"", yaml_path], capture_output=True, text=True)
+            src_repo = result.stdout.strip()
+            result = subprocess.run(["yq", ".build.source_commit // \"\"", yaml_path], capture_output=True, text=True)
+            src_commit = result.stdout.strip()
+        except Exception:
+            pass
 
 # Strip ALL auto-injected content before detecting developer's own installs.
 # This handles three cases:
