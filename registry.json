@@ -144,10 +144,10 @@
     },
     {
       "name": "gmx-v2",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "description": "Trade perpetuals and spot on GMX V2 — open/close leveraged positions, place limit/stop orders, add/remove GM pool liquidity, query markets and positions",
       "author": {
-        "name": "skylavis-sky"
+        "name": "GeoGu360"
       },
       "category": "defi-protocol",
       "tags": [
