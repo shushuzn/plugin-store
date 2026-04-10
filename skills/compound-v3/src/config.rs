@@ -65,7 +65,7 @@ pub fn default_rpc_url(chain_id: u64) -> &'static str {
         1 => "https://ethereum.publicnode.com",
         8453 => "https://base-rpc.publicnode.com",
         42161 => "https://arbitrum-one-rpc.publicnode.com",
-        137 => "https://polygon-rpc.com",
+        137 => "https://polygon-bor-rpc.publicnode.com",
         _ => "https://base-rpc.publicnode.com",
     }
 }
