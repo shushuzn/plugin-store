@@ -402,7 +402,27 @@ skills/my-rust-tool/
 
 #### Mode B: External Repository (source code in your own repo)
 
-Your source code stays in your own GitHub repo, pinned to a specific commit. Only `plugin.yaml` and metadata live in the plugin-store repo.
+Your source code stays in your own GitHub repo, pinned to a specific commit. CI clones your repo at the pinned commit to compile the binary.
+
+**Important: Your PR must include the following files in `skills/<name>/`:**
+
+| File | Required | Notes |
+|------|:--------:|-------|
+| `plugin.yaml` | Yes | Must include `build.source_repo`, `build.source_commit`, `build.source_dir` |
+| `SKILL.md` | **Yes** | Must contain full command documentation. CI cannot fetch SKILL.md from your remote repo — it must be in the PR. CI will inject pre-flight blocks automatically. |
+| `LICENSE` | Yes | SPDX-compatible license file |
+| `.claude-plugin/plugin.json` | Yes | Standard Claude skill metadata |
+
+> **Why must SKILL.md be in the PR?** CI needs to inject pre-flight installation blocks (onchainos CLI, binary download, telemetry) into SKILL.md and push them back to your PR branch. This is not possible if SKILL.md lives in your remote repo. Additionally, SKILL.md must be reviewable in the PR diff.
+
+```
+skills/defi-yield-optimizer/
+├── .claude-plugin/
+│   └── plugin.json
+├── plugin.yaml
+├── SKILL.md              ← Full command docs (required in PR)
+└── LICENSE
+```
 
 ```yaml
 schema_version: 1
@@ -420,18 +440,20 @@ tags:
 
 components:
   skill:
-    repo: "defi-builder/yield-optimizer"
-    commit: "a1b2c3d4e5f6789012345678901234567890abcd"
+    dir: "."              # SKILL.md is in the plugin directory, not remote
 
 build:
   lang: rust
-  source_repo: "defi-builder/yield-optimizer"
-  source_commit: "a1b2c3d4e5f6789012345678901234567890abcd"
+  source_repo: "defi-builder/yield-optimizer"    # Your GitHub repo
+  source_commit: "a1b2c3d4e5f6789012345678901234567890abcd"  # Pinned commit
+  source_dir: "defi-yield"                       # Subdirectory in your repo (for monorepos)
   binary_name: defi-yield
 
 api_calls:
   - "api.defillama.com"
 ```
+
+The `build.source_dir` field tells CI which subdirectory in your repo contains the `Cargo.toml` (or `go.mod`). This is important for **monorepos** — CI will only compile from that subdirectory, not the entire repository.
 
 #### Mode C: Marketplace Import
 

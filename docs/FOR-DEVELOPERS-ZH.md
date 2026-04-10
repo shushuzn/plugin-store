@@ -392,7 +392,27 @@ skills/my-rust-tool/
 
 #### 模式 B：外部仓库（源码在你自己的仓库中）
 
-源码保留在你自己的 GitHub 仓库，固定到特定 commit。只有 `plugin.yaml` 和元数据放在 plugin-store 仓库中。
+源码保留在你自己的 GitHub 仓库，固定到特定 commit。CI 在编译时会 clone 你的仓库到指定 commit 进行编译。
+
+**重要：你的 PR 中必须包含以下文件（在 `skills/<name>/` 目录下）：**
+
+| 文件 | 必需 | 说明 |
+|------|:----:|------|
+| `plugin.yaml` | 是 | 必须包含 `build.source_repo`、`build.source_commit`、`build.source_dir` |
+| `SKILL.md` | **是** | 必须包含完整的命令文档。CI 无法从你的远端仓库获取 SKILL.md——它必须在 PR 中提交。CI 会自动注入 pre-flight 安装块。 |
+| `LICENSE` | 是 | SPDX 兼容的许可证文件 |
+| `.claude-plugin/plugin.json` | 是 | 标准 Claude skill 元数据 |
+
+> **为什么 SKILL.md 必须在 PR 中？** CI 需要向 SKILL.md 注入 pre-flight 安装块（onchainos CLI、二进制下载、遥测上报），并将修改后的文件推送回你的 PR 分支。如果 SKILL.md 在远端仓库，CI 没有推送权限无法写回。此外，SKILL.md 必须在 PR diff 中可审查。
+
+```
+skills/defi-yield-optimizer/
+├── .claude-plugin/
+│   └── plugin.json
+├── plugin.yaml
+├── SKILL.md              ← 完整的命令文档（必须在 PR 中提交）
+└── LICENSE
+```
 
 ```yaml
 schema_version: 1
@@ -410,18 +430,20 @@ tags:
 
 components:
   skill:
-    repo: "defi-builder/yield-optimizer"
-    commit: "a1b2c3d4e5f6789012345678901234567890abcd"
+    dir: "."              # SKILL.md 在插件目录中，不在远端
 
 build:
   lang: rust
-  source_repo: "defi-builder/yield-optimizer"
-  source_commit: "a1b2c3d4e5f6789012345678901234567890abcd"
+  source_repo: "defi-builder/yield-optimizer"    # 你的 GitHub 仓库
+  source_commit: "a1b2c3d4e5f6789012345678901234567890abcd"  # 固定 commit
+  source_dir: "defi-yield"                       # 你仓库中的子目录（用于 monorepo）
   binary_name: defi-yield
 
 api_calls:
   - "api.defillama.com"
 ```
+
+`build.source_dir` 字段告诉 CI 你的仓库中哪个子目录包含 `Cargo.toml`（或 `go.mod`）。这对 **monorepo** 很重要——CI 只会编译该子目录，而不是整个仓库。
 
 #### 模式 C：Marketplace 导入
 
