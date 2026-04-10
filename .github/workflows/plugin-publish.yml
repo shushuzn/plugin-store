@@ -695,73 +695,143 @@ jobs:
       # No inline summary generation in publish workflow.
 
       - name: Update registry in this repo
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          CURRENT=$(cat registry.json)
-          OFFICIAL=$(echo "$CURRENT" | jq '[.plugins[] | select(.type != "community-developer" and .type != "community")]')
-          COMMUNITY_NEW=$(cat /tmp/community_entries.json)
+          # Full-scan approach: regenerate registry.json from ALL skills/ directories.
+          # This eliminates concurrent push conflicts — every run produces the complete
+          # registry, so the last push always wins and is always correct.
 
-          # Merge community entries: preserve link/extra from existing registry
-          COMMUNITY_OLD=$(echo "$CURRENT" | jq '[.plugins[] | select(.type == "community-developer" or .type == "community")]')
-          COMMUNITY=$(jq -n \
-            --argjson old "$COMMUNITY_OLD" \
-            --argjson new "$COMMUNITY_NEW" \
-            '[$new[] | . as $entry |
-              ($old | map(select(.name == $entry.name)) | first // null) as $existing |
-              if $existing then
-                $entry
-                + (if $existing.link then {link: $existing.link} else {} end)
-                + (if $existing.extra then {extra: $existing.extra} else {} end)
-              else $entry end
-            ]')
+          git pull origin main --rebase 2>/dev/null || true
 
-          # Merge and deduplicate by name (last wins)
-          MERGED=$(jq -n \
-            --argjson official "$OFFICIAL" \
-            --argjson community "$COMMUNITY" \
-            --arg stats_url "$(echo "$CURRENT" | jq -r '.stats_url // ""')" \
-            '{schema_version: 1, stats_url: $stats_url, plugins: [($official + $community) | group_by(.name)[] | last]}')
+          python3 << 'PYEOF'
+          import json, os, yaml, glob
 
-          echo "$MERGED" | jq '.' > registry.json
+          # Read current registry to preserve link/extra fields
+          with open("registry.json") as f:
+              current = json.load(f)
+          existing_by_name = {p["name"]: p for p in current.get("plugins", [])}
+
+          plugins = []
+          for yaml_path in sorted(glob.glob("skills/*/plugin.yaml")):
+              plugin_dir = os.path.dirname(yaml_path)
+              name = os.path.basename(plugin_dir)
+              if name.startswith("_"):
+                  continue
+
+              with open(yaml_path) as f:
+                  data = yaml.safe_load(f) or {}
+
+              entry = {
+                  "name": name,
+                  "version": str(data.get("version", "0.1.0")),
+                  "description": data.get("description", ""),
+                  "author": data.get("author", {}),
+                  "license": data.get("license", "MIT"),
+                  "category": data.get("category", ""),
+                  "tags": data.get("tags", []),
+              }
+
+              # Detect plugin type
+              build = data.get("build", {}) or {}
+              components = data.get("components", {}) or {}
+              skill = components.get("skill", {}) or {}
+
+              if skill.get("repo"):
+                  entry["type"] = "community"
+              elif build.get("source_repo"):
+                  entry["type"] = "community-developer"
+              elif build.get("lang"):
+                  entry["type"] = "community-developer"
+              else:
+                  entry["type"] = data.get("type", "community")
+
+              # Add binary component if applicable
+              if build.get("lang") in ("rust", "go"):
+                  bin_name = build.get("binary_name", name)
+                  entry["components"] = {
+                      "skill": {"dir": skill.get("dir", ".")},
+                      "binary": {
+                          "repo": "okx/plugin-store",
+                          "asset_pattern": f"{bin_name}-{{target}}",
+                          "checksums_asset": "checksums.txt",
+                          "release_tag": f"plugins/{name}@{entry['version']}"
+                      }
+                  }
+              else:
+                  entry["components"] = {"skill": {"dir": skill.get("dir", ".")}}
+
+              # Add api_calls if present
+              api_calls = data.get("api_calls", [])
+              if api_calls:
+                  entry["api_calls"] = api_calls
+
+              # Preserve link/extra from existing registry
+              existing = existing_by_name.get(name, {})
+              if "link" in existing:
+                  entry["link"] = existing["link"]
+              if "extra" in existing:
+                  entry["extra"] = existing["extra"]
+
+              plugins.append(entry)
+
+          result = {
+              "schema_version": 1,
+              "stats_url": current.get("stats_url", ""),
+              "plugins": plugins
+          }
+
+          with open("registry.json", "w") as f:
+              json.dump(result, f, indent=2, ensure_ascii=False)
+              f.write("\n")
+
+          print(f"Registry regenerated: {len(plugins)} plugins from skills/ scan")
+          PYEOF
 
           git config user.name "plugin-store-bot"
           git config user.email "bot@plugin-store.local"
           git add registry.json
           git diff --staged --quiet && echo "No registry changes" && exit 0
 
-          git commit -m "Update registry.json with community plugins"
+          git commit -m "Update registry.json (full scan of skills/)"
           for attempt in 1 2 3 4 5; do
             if git push; then echo "Registry updated"; exit 0; fi
-            echo "Push failed ($attempt/5), retrying..."
-            git pull --rebase origin main || {
-              echo "::warning::Registry rebase conflict on attempt $attempt — another publish may be running concurrently"
-              git rebase --abort 2>/dev/null || true
-              git reset --hard origin/main
-              # Re-apply our registry changes on top of latest main
-              python3 << 'PYEOF'
-          import json, os
-          with open("registry.json") as f:
-              current = json.load(f)
-          with open("/tmp/community_entries.json") as f:
-              new_entries = json.load(f)
-          old_by_name = {p["name"]: p for p in current.get("plugins", [])}
-          for entry in new_entries:
-              old_by_name[entry["name"]] = entry
-          current["plugins"] = sorted(old_by_name.values(), key=lambda x: x["name"])
-          with open("registry.json", "w") as f:
-              json.dump(current, f, indent=2, ensure_ascii=False)
-              f.write("\n")
-          PYEOF
-              git add registry.json
-              git commit -m "Update registry.json with community plugins (retry $attempt)"
-            }
+            echo "Push conflict ($attempt/5) — pulling latest and regenerating..."
+            git reset --soft HEAD~1
+            git checkout -- registry.json
+            git pull origin main --rebase 2>/dev/null || git pull origin main
+            # Re-run the full scan on latest main (just re-execute the python above)
+            python3 -c "
+          import json, os, yaml, glob
+          with open('registry.json') as f: current = json.load(f)
+          existing = {p['name']: p for p in current.get('plugins', [])}
+          plugins = []
+          for yp in sorted(glob.glob('skills/*/plugin.yaml')):
+              d = os.path.dirname(yp); name = os.path.basename(d)
+              if name.startswith('_'): continue
+              with open(yp) as f: data = yaml.safe_load(f) or {}
+              build = data.get('build', {}) or {}
+              comp = data.get('components', {}).get('skill', {}) or {}
+              e = {'name': name, 'version': str(data.get('version','0.1.0')), 'description': data.get('description',''), 'author': data.get('author',{}), 'license': data.get('license','MIT'), 'category': data.get('category',''), 'tags': data.get('tags',[]), 'type': 'community-developer' if build.get('lang') else data.get('type','community')}
+              if build.get('lang') in ('rust','go'):
+                  bn = build.get('binary_name', name)
+                  e['components'] = {'skill': {'dir': comp.get('dir','.')}, 'binary': {'repo':'okx/plugin-store','asset_pattern':f'{bn}-{{target}}','checksums_asset':'checksums.txt','release_tag':f'plugins/{name}@{e[\"version\"]}'}}
+              else:
+                  e['components'] = {'skill': {'dir': comp.get('dir','.')}}
+              ac = data.get('api_calls', [])
+              if ac: e['api_calls'] = ac
+              old = existing.get(name, {})
+              if 'link' in old: e['link'] = old['link']
+              if 'extra' in old: e['extra'] = old['extra']
+              plugins.append(e)
+          with open('registry.json','w') as f: json.dump({'schema_version':1,'stats_url':current.get('stats_url',''),'plugins':plugins},f,indent=2,ensure_ascii=False); f.write('\n')
+          print(f'Regenerated: {len(plugins)} plugins')
+          "
+            git add registry.json
+            git diff --staged --quiet && { echo "No changes after regeneration"; exit 0; }
+            git commit -m "Update registry.json (full scan, retry $attempt)"
           done
-          echo "::error::Failed to push registry after 5 attempts — concurrent publish conflict"
-          # Post a warning to the repo
-          gh api repos/${{ github.repository }}/issues \
-            --method POST \
-            -f title="⚠️ Registry update conflict — manual retry needed" \
-            -f body="Phase 5 Publish failed to update registry.json after 5 retries due to concurrent push conflicts. Please re-run the workflow or manually trigger \`workflow_dispatch\` with \`rebuild_all=false\`." \
-            -f labels[]="bug" 2>/dev/null || true
+          echo "::error::Failed to push registry after 5 attempts"
           exit 1
 
       - name: Un-draft all releases
