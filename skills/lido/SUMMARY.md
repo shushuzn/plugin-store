@@ -2,12 +2,12 @@
 Stake ETH with Lido liquid staking protocol to receive stETH, manage withdrawals, and track staking rewards on Ethereum mainnet.
 
 ## Highlights
-- Stake ETH to receive liquid stETH tokens that earn daily rewards
-- Get current 7-day average staking APR from Lido protocol
-- Check stETH balance for any address on Ethereum mainnet
-- Request withdrawals to convert stETH back to ETH via withdrawal queue
-- List pending and past withdrawal requests with status tracking
-- Claim finalized withdrawals to receive ETH back to your wallet
-- Built-in safety with user confirmation required for all write operations
-- Direct integration with onchainos CLI for secure transaction signing
+- Stake ETH to receive liquid stETH tokens that accrue rewards automatically
+- Real-time APR tracking with 7-day moving averages
+- Request withdrawals from stETH back to ETH with queue management
+- Monitor withdrawal status and estimated completion times
+- Claim finalized withdrawals with automatic NFT burning
+- Balance queries for both stETH tokens and underlying shares
+- TEE-sandboxed transactions through onchainos with user confirmation
+- Support for referral addresses during staking operations
 
