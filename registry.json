@@ -33,13 +33,15 @@
     },
     {
       "name": "clanker",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "description": "Deploy and manage Clanker ERC-20 tokens on Base and Arbitrum — launch tokens, search by creator, and claim LP fee rewards",
       "author": {
         "name": "GeoGu360"
       },
       "category": "defi-protocol",
-      "tags": [],
+      "tags": [
+        "trading"
+      ],
       "type": "community-developer",
       "components": {
         "skill": {
@@ -53,7 +55,7 @@
           "base"
         ],
         "protocols": [],
-        "risk_level": "medium"
+        "risk_level": "high"
       }
     },
     {
