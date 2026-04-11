@@ -1,13 +1,13 @@
 # curve
-A comprehensive Curve DEX plugin for swapping stablecoins and managing liquidity across Ethereum, Arbitrum, Base, Polygon, and BSC.
+The Curve DEX plugin enables stablecoin swaps, liquidity management, and pool queries across Ethereum, Arbitrum, Base, Polygon, and BSC.
 
 ## Highlights
-- Swap stablecoins with minimal slippage on Curve Finance
+- Swap stablecoins across 5 major chains with low slippage
 - Add and remove liquidity from Curve pools
-- Query pool information, APY rates, and TVL data
-- Check LP token balances across multiple chains
-- Get real-time swap quotes with slippage protection
-- Support for 5 major networks (Ethereum, Arbitrum, Base, Polygon, BSC)
-- Dry-run capability for previewing transactions before execution
-- Automatic allowance management for ERC-20 tokens
+- Query pool information and APY rates
+- Check LP token balances across all positions
+- Get real-time swap quotes with price impact warnings
+- Automatic token approval handling with confirmation polling
+- Support for both proportional and single-coin withdrawals
+- Human-readable amounts with automatic decimal resolution
 
