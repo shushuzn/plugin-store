@@ -26,10 +26,10 @@ Before executing any write operation, verify the environment is ready:
 onchainos --version
 
 # Verify wallet is authenticated
-onchainos wallet address --chain 56
+onchainos wallet addresses --chain 56
 ```
 
-If `onchainos wallet address` returns an error, run `onchainos wallet login` before proceeding.
+If `onchainos wallet addresses` returns an error, run `onchainos wallet login` before proceeding.
 
 ---
 
