@@ -431,3 +431,4 @@ clanker claim-rewards --token-address 0xTokenAddress --from 0xYourWallet --confi
 - **fix**: Version alignment — `.claude-plugin/plugin.json` was incorrectly set to `1.0.0`; aligned to `0.1.1` with all other version files.
 - **docs**: Added expected output examples to `token-info` section for both price-available and no-price scenarios.
 - **chore**: Removed CI-injected pre-flight block (re-injected post-merge by CI).
+
