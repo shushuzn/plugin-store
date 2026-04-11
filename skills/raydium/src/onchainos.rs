@@ -11,7 +11,7 @@ pub fn resolve_wallet_solana() -> anyhow::Result<String> {
         .map_err(|e| anyhow::anyhow!("wallet addresses parse error: {}", e))?;
     let addr = json["data"]["solana"][0]["address"].as_str().unwrap_or("").to_string();
     if addr.is_empty() {
-        anyhow::bail!("Could not resolve Solana wallet address — ensure onchainos is logged in");
+        anyhow::bail!("Could not resolve Solana wallet address -- ensure onchainos is logged in");
     }
     Ok(addr)
 }
@@ -19,7 +19,7 @@ pub fn resolve_wallet_solana() -> anyhow::Result<String> {
 /// Submit a Solana serialized transaction via onchainos.
 /// serialized_tx: base64-encoded VersionedTransaction from Raydium API.
 /// onchainos --unsigned-tx expects base58, so we convert here.
-/// NOTE: Solana blockhash expires in ~60s — call immediately after receiving tx.
+/// NOTE: Solana blockhash expires in ~60s -- call immediately after receiving tx.
 /// NOTE: --force is required for Solana --unsigned-tx submissions to broadcast.
 pub async fn wallet_contract_call_solana(
     to: &str,
