@@ -1,10 +1,11 @@
 ---
 name: meteora
-description: "Meteora DLMM plugin for Solana — search liquidity pools, get swap quotes, view user positions, execute token swaps, add liquidity, and remove liquidity. Trigger phrases: Meteora swap, swap on Meteora, find Meteora pool, Meteora DLMM, check my Meteora positions, add liquidity to Meteora, provide liquidity on Meteora, remove liquidity from Meteora, withdraw from Meteora position, close Meteora position. Chinese: Meteora换币, 查询Meteora流动池, 在Meteora上兑换代币, 在Meteora上加流动性, 撤出Meteora流动性, 关闭Meteora仓位"
-license: MIT
-metadata:
-  author: skylavis-sky
-  version: "0.3.1"
+description: "Meteora DLMM plugin for Solana — search liquidity pools, get swap quotes, view user positions, execute token swaps, add and remove liquidity"
+version: "0.3.1"
+tags:
+  - solana
+  - dex
+  - dlmm
 ---
 
 ## Pre-flight Dependencies (auto-injected by Plugin Store CI)
