@@ -282,6 +282,8 @@ polymarket buy --market-id <id> --outcome <outcome> --amount <usdc> [--price <0-
 
 **Amount encoding:** USDC.e amounts are 6-decimal (multiply by 1,000,000 internally). Price must be rounded to tick size (typically 0.01).
 
+> ⚠️ **Minimum order size**: Before placing (or dry-running) an order, the plugin fetches `min_order_size` from the market's order book. If `--amount` is below that minimum, the command exits with an error stating the required minimum. This check applies even in `--dry-run` mode.
+
 > ⚠️ **Market order slippage**: When `--price` is omitted, the order is a FOK (fill-or-kill) market order that fills at the best available price from the order book. On low-liquidity markets or large order sizes, this price may be significantly worse than the mid-price. Recommend using `--price` (limit order) for amounts above $10 to control slippage.
 
 **Output fields:** `order_id`, `status` (live/matched/unmatched), `condition_id`, `outcome`, `token_id`, `side`, `order_type`, `limit_price`, `usdc_amount`, `shares`, `tx_hashes`
@@ -330,6 +332,17 @@ polymarket sell --market-id will-btc-hit-100k-by-2025 --outcome yes --shares 100
 polymarket sell --market-id 0xabc... --outcome no --shares 50
 polymarket sell --market-id 0xabc... --outcome no --shares 50 --confirm
 ```
+
+---
+
+### Safety Guards
+
+Two runtime guards protect against common order mistakes:
+
+| Guard | Command | Trigger | Behaviour |
+|-------|---------|---------|-----------|
+| Minimum order size | `buy` | `--amount` is below the market's `min_order_size` | Command exits with an error stating the required minimum. Applies even in `--dry-run` mode. |
+| Bad-price confirmation | `sell` | Market order (no `--price`) with computed fill price < 0.50/share | Command halts and outputs `requires_confirmation`. Re-run with `--confirm` to proceed. |
 
 ---
 
