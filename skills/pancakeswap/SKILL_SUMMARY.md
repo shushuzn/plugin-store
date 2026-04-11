@@ -2,20 +2,20 @@
 # pancakeswap -- Skill Summary
 
 ## Overview
-This skill enables token swapping and concentrated liquidity management on PancakeSwap V3, the leading decentralized exchange on BNB Chain and Base. It provides comprehensive DEX functionality including real-time quotes, token swaps via SmartRouter, liquidity position minting/burning, pool analytics, and portfolio tracking. All operations integrate with the onchainos wallet system and include safety checks with user confirmation steps for write operations.
+This skill enables token swapping and concentrated liquidity management on PancakeSwap V3, the leading decentralized exchange on BNB Chain, Base, and Arbitrum. It provides comprehensive functionality for trading tokens, providing liquidity, and managing LP positions with built-in safety checks, slippage protection, and multi-chain support across three major networks.
 
 ## Usage
-Install the plugin via OKX plugin store, ensure your onchainos wallet is connected, then use commands like `pancakeswap quote`, `pancakeswap swap`, or `pancakeswap add-liquidity`. All write operations require explicit user confirmation before broadcasting transactions.
+Install the pancakeswap binary via the plugin system, ensure your wallet is connected with `onchainos wallet login`, then use commands like `pancakeswap quote`, `pancakeswap swap`, or `pancakeswap add-liquidity` to interact with PancakeSwap V3 pools.
 
 ## Commands
 | Command | Description |
 |---------|-------------|
 | `quote` | Get swap quotes without executing transactions |
 | `swap` | Execute token swaps via SmartRouter |
-| `pools` | List available pools for token pairs |
+| `pools` | List all pools for a token pair across fee tiers |
 | `positions` | View LP positions for a wallet address |
 | `add-liquidity` | Mint new concentrated liquidity positions |
 | `remove-liquidity` | Remove liquidity and collect tokens from positions |
 
 ## Triggers
-Activate this skill when users mention PancakeSwap operations like "swap on pancake", "add liquidity pancakeswap", "PCS swap", or want to manage V3 concentrated liquidity positions. Do not use for PancakeSwap V2 AMM operations.
+Activate this skill when users mention "pancakeswap", "swap on pancake", "PCS swap", liquidity management on PancakeSwap, or trading on BNB Chain, Base, or Arbitrum DEXes. Use for PancakeSwap V3 concentrated liquidity operations only.
