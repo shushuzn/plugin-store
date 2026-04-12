@@ -1,13 +1,13 @@
 # pancakeswap-clmm
-A PancakeSwap V3 CLMM farming plugin that enables staking LP NFTs into MasterChefV3 to earn CAKE rewards across multiple chains.
+PancakeSwap V3 CLMM farming plugin that enables staking LP NFTs into MasterChefV3 to earn CAKE rewards across BSC, Ethereum, Base, and Arbitrum.
 
 ## Highlights
-- Stake V3 LP NFTs into MasterChefV3 to farm CAKE rewards
-- Harvest CAKE rewards without withdrawing positions
+- Stake V3 LP NFTs into MasterChefV3 to earn CAKE rewards
+- Harvest CAKE rewards from staked positions without unstaking
 - Collect accumulated swap fees from unstaked positions
-- Withdraw staked NFTs with automatic reward claiming
-- Multi-chain support (BSC, Ethereum, Base, Arbitrum)
-- View pending rewards and active farming pools
-- Preview transactions with dry-run mode
-- Automatic wallet integration via onchainos
+- View pending CAKE rewards and active farming pools
+- Support for BSC, Ethereum, Base, and Arbitrum chains
+- Preview all operations before execution with safety confirmations
+- Automatic wallet integration through onchainos CLI
+- Complements the main pancakeswap plugin for complete V3 workflow
 
