@@ -278,45 +278,53 @@ impl BalanceAllowance {
 
 // ─── CLOB API calls ───────────────────────────────────────────────────────────
 
-/// Check whether the CLOB API is reachable and not geo-restricted.
+/// Check whether the CLOB trading endpoint is geo-restricted.
 ///
-/// Returns Ok(None) if access is confirmed, Ok(Some(warning)) if restricted,
-/// or Ok(Some(warning)) on unexpected responses. Fails open on network errors
-/// (a transient failure should not block market browsing).
+/// POSTs an empty request to /order (no auth headers). The CLOB applies
+/// geo-checks before auth checks on this endpoint, so:
+///   - Restricted IP  → HTTP 403 + JSON {"error":"Trading restricted in your region..."}
+///   - Unrestricted IP → HTTP 400/401/422 (invalid/unauthorized — request reached the app)
+///
+/// We match on the specific error string rather than the status code alone to avoid
+/// false positives (some endpoints return 403 for auth reasons on unrestricted IPs).
+/// Fails open on network errors or unexpected responses.
 pub async fn check_clob_access(client: &Client) -> Option<String> {
-    let url = format!("{}/markets?limit=1", Urls::CLOB);
-    let resp = match client.get(&url).send().await {
+    let url = format!("{}/order", Urls::CLOB);
+    let resp = match client
+        .post(&url)
+        .header(reqwest::header::CONTENT_TYPE, "application/json")
+        .body("{}")
+        .send()
+        .await
+    {
         Ok(r) => r,
-        // Network failure — don't block the command
         Err(_) => return None,
     };
 
     let status = resp.status();
 
-    // HTTP 403 (Cloudflare geo-block) or 451 (legally unavailable)
-    if status == reqwest::StatusCode::FORBIDDEN || status.as_u16() == 451 {
-        return Some(format!(
-            "Polymarket CLOB returned HTTP {} — your region may be restricted. \
-             Review Polymarket's Terms of Use before topping up USDC.e.",
-            status.as_u16()
-        ));
+    // Only inspect 403/451 — anything else (400, 401, 422, 200, 5xx) is not a geo-block
+    if status != reqwest::StatusCode::FORBIDDEN && status.as_u16() != 451 {
+        return None;
     }
 
-    // Any other non-200 with an HTML body → likely a Cloudflare block page
-    if !status.is_success() {
-        let ct = resp.headers()
-            .get(reqwest::header::CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("");
-        if ct.contains("text/html") {
-            return Some(format!(
-                "Polymarket CLOB returned HTTP {} (HTML) — your region may be restricted. \
-                 Review Polymarket's Terms of Use before topping up USDC.e.",
-                status.as_u16()
-            ));
-        }
+    // Read the body and look for Polymarket's specific geo-restriction message.
+    // Matching the string rather than the status code avoids false positives.
+    let body = match resp.text().await {
+        Ok(b) => b,
+        Err(_) => return None,
+    };
+
+    if body.contains("restricted") || body.contains("geoblock") {
+        return Some(
+            "Polymarket is not available in your region — trading is restricted. \
+             Review Polymarket's Terms of Use (https://polymarket.com/tos) \
+             before topping up USDC.e."
+                .to_string(),
+        );
     }
 
+    // 403 for a different reason (e.g. auth policy change) — fail open
     None
 }
 
