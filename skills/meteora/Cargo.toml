@@ -8,6 +8,7 @@ name = "meteora"
 path = "src/main.rs"
 
 [dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
 anyhow = "1"
 base64 = "0.22"
 bincode = "1"

@@ -491,7 +491,19 @@ jobs:
 
             RELEASE_DIR="${REPO_ROOT}/release-${NAME}"
             mkdir -p "$RELEASE_DIR"
-            cp ${REPO_ROOT}/artifacts/${BIN}-* "$RELEASE_DIR/" 2>/dev/null || true
+            # Exact match: copy only ${BIN}-${target} files, not ${BIN}-something-else-*
+            # This prevents pancakeswap-* from matching pancakeswap-clmm-*
+            for f in ${REPO_ROOT}/artifacts/${BIN}-*; do
+              base=$(basename "$f")
+              # Strip .exe suffix for matching, then check the part after ${BIN}- is a valid target
+              stripped="${base%.exe}"
+              target_part="${stripped#${BIN}-}"
+              case "$target_part" in
+                aarch64-apple-darwin|x86_64-apple-darwin|x86_64-unknown-linux-gnu|i686-unknown-linux-gnu|aarch64-unknown-linux-gnu|armv7-unknown-linux-gnueabihf|x86_64-pc-windows-msvc|i686-pc-windows-msvc|aarch64-pc-windows-msvc)
+                  cp "$f" "$RELEASE_DIR/"
+                  ;;
+              esac
+            done
             chmod +x "$RELEASE_DIR"/* 2>/dev/null || true
 
             cd "$RELEASE_DIR"
