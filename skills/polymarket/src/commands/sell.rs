@@ -18,7 +18,6 @@ use super::buy::resolve_market_token;
 /// outcome: outcome label, case-insensitive (e.g. "yes", "no", "trump")
 /// shares: number of token shares to sell (human-readable)
 /// price: limit price in [0, 1], or None for market order (FOK)
-/// confirm: skip the bad-price confirmation gate
 pub async fn run(
     market_id: &str,
     outcome: &str,
@@ -29,7 +28,6 @@ pub async fn run(
     dry_run: bool,
     post_only: bool,
     expires: Option<u64>,
-    confirm: bool,
 ) -> Result<()> {
     if dry_run {
         println!(

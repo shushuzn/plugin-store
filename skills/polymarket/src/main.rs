@@ -197,9 +197,9 @@ async fn main() {
             dry_run,
             post_only,
             expires,
-            confirm,
+            confirm: _confirm,
         } => {
-            commands::sell::run(&market_id, &outcome, &shares, price, &order_type, approve, dry_run, post_only, expires, confirm).await
+            commands::sell::run(&market_id, &outcome, &shares, price, &order_type, approve, dry_run, post_only, expires).await
         }
         Commands::Cancel { order_id, market, all } => {
             if all {

@@ -322,7 +322,7 @@ polymarket buy --market-id 0xabc... --outcome no --amount 100
 ### `sell` — Sell Outcome Shares
 
 ```
-polymarket sell --market-id <id> --outcome <outcome> --shares <amount> [--price <0-1>] [--order-type <GTC|FOK>] [--approve]
+polymarket sell --market-id <id> --outcome <outcome> --shares <amount> [--price <0-1>] [--order-type <GTC|FOK>] [--approve] [--dry-run]
 ```
 
 **Flags:**
@@ -336,6 +336,7 @@ polymarket sell --market-id <id> --outcome <outcome> --shares <amount> [--price 
 | `--approve` | Force CTF token approval before placing | false |
 | `--post-only` | Maker-only: reject if the order would immediately cross the spread. Requires `--order-type GTC`. Qualifies for maker rebates. Incompatible with `--order-type FOK`. | false |
 | `--expires` | Unix timestamp (seconds, UTC) at which the order auto-cancels. Minimum 90 seconds in the future. Auto-sets `order_type` to `GTD`. | — |
+| `--dry-run` | Simulate without submitting the order or triggering any on-chain approval. Prints a confirmation JSON and exits. Use to verify parameters before a real sell. | false |
 
 **Auth required:** Yes — onchainos wallet; EIP-712 order signing via `onchainos sign-message --type eip712`
 
@@ -442,6 +443,12 @@ polymarket cancel --all
 3. Caches them at `~/.config/polymarket/creds.json` (0600 permissions) for all future calls
 
 The onchainos wallet address is the Polymarket trading identity. Credentials are automatically re-derived if the active wallet changes.
+
+**Credential rotation**: If credentials may be compromised or API calls start returning 401 errors, delete the cache file and they will be re-derived automatically on the next trading command:
+
+```bash
+rm ~/.config/polymarket/creds.json
+```
 
 **Override via environment variables** (optional — takes precedence over cached credentials):
 
