@@ -2,21 +2,22 @@
 # hyperliquid -- Skill Summary
 
 ## Overview
-This skill enables trading perpetual futures on Hyperliquid, a high-performance on-chain perpetuals exchange built on its own L1 blockchain. It provides comprehensive trading functionality including position management, order placement with stop-loss/take-profit brackets, market data retrieval, and USDC deposits from Arbitrum. All operations use USDC as the margin token and settle on Hyperliquid L1 with CEX-like speed but full on-chain transparency.
+This skill provides comprehensive trading functionality for the Hyperliquid perpetual derivatives exchange built on Hyperliquid L1. It enables users to manage positions, place orders with advanced bracket strategies, monitor real-time prices, and seamlessly bridge USDC from Arbitrum. The plugin handles both read-only operations (positions, prices) via REST API and write operations (trading, deposits) through EIP-712 signing with the onchainos wallet system.
 
 ## Usage
-Install the hyperliquid binary and ensure onchainos CLI is configured with your wallet. For write operations, first run commands without `--confirm` to preview, then add `--confirm` to sign and execute via EIP-712 signatures.
+Run `hyperliquid register` once to set up your signing address, then use commands like `hyperliquid order --coin BTC --side buy --size 0.01 --confirm` to trade. All write operations require `--confirm` flag to execute after previewing.
 
 ## Commands
 | Command | Description |
 |---------|-------------|
-| `hyperliquid positions` | Check open perpetual positions and account summary |
-| `hyperliquid prices` | Get current mid prices for all or specific markets |
-| `hyperliquid order` | Place market/limit orders with optional TP/SL brackets |
-| `hyperliquid close` | Market-close an open position |
-| `hyperliquid tpsl` | Set stop-loss/take-profit on existing positions |
-| `hyperliquid cancel` | Cancel open orders by order ID |
-| `hyperliquid deposit` | Deposit USDC from Arbitrum to Hyperliquid |
+| `positions` | Check open perpetual positions and account summary |
+| `prices` | Get current market mid prices for all or specific coins |
+| `order` | Place market/limit orders with optional TP/SL brackets |
+| `close` | Market-close an open position |
+| `tpsl` | Set stop-loss and/or take-profit on existing positions |
+| `cancel` | Cancel open orders by order ID |
+| `deposit` | Deposit USDC from Arbitrum to Hyperliquid |
+| `register` | One-time setup to detect signing address |
 
 ## Triggers
-Activate when users mention trading on Hyperliquid, checking Hyperliquid positions, placing perp orders, or managing stop-loss/take-profit levels. Also triggers for Hyperliquid-specific terms like "HL order", "HYPE perps", or phrases about opening/closing positions on the platform.
+Activate when users mention trading perpetuals, managing positions on Hyperliquid, placing orders with stop-loss/take-profit, or bridging USDC from Arbitrum. Also triggered by phrases like "HL order", "Hyperliquid perps", or specific trading actions like "long BTC on Hyperliquid".
