@@ -1,6 +1,6 @@
 {
-  "name": "polymarket",
-  "description": "Trade prediction markets on Polymarket — buy and sell YES/NO outcome tokens on Polygon",
+  "name": "polymarket-plugin",
+  "description": "Trade prediction markets on Polymarket \u2014 buy and sell YES/NO outcome tokens on Polygon",
   "version": "0.3.0",
   "author": {
     "name": "skylavis-sky",
@@ -9,5 +9,12 @@
   "homepage": "https://github.com/skylavis-sky/onchainos-plugins/tree/main/polymarket",
   "repository": "https://github.com/skylavis-sky/onchainos-plugins",
   "license": "MIT",
-  "keywords": ["prediction-market", "polymarket", "polygon", "trading", "defi", "clob"]
+  "keywords": [
+    "prediction-market",
+    "polymarket",
+    "polygon",
+    "trading",
+    "defi",
+    "clob"
+  ]
 }

@@ -1,4 +1,4 @@
-# polymarket
+# polymarket-plugin
 Trade prediction markets on Polymarket — buy and sell YES/NO outcome tokens on Polygon.
 
 ## Highlights
