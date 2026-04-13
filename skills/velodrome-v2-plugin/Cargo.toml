@@ -4,7 +4,7 @@ version = "0.1.2"
 edition = "2021"
 
 [[bin]]
-name = "velodrome-v2"
+name = "velodrome-v2-plugin"
 path = "src/main.rs"
 
 [dependencies]

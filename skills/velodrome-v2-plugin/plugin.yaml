@@ -1,5 +1,5 @@
 schema_version: 1
-name: velodrome-v2
+name: velodrome-v2-plugin
 version: "0.1.2"
 description: Swap tokens and manage classic AMM (volatile/stable) LP positions on
   Velodrome V2 on Optimism
@@ -21,6 +21,6 @@ components:
     dir: .
 build:
   lang: rust
-  binary_name: velodrome-v2
+  binary_name: velodrome-v2-plugin
 api_calls:
 - optimism-rpc.publicnode.com
