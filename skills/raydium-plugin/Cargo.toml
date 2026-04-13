@@ -4,7 +4,7 @@ version = "0.1.3"
 edition = "2021"
 
 [[bin]]
-name = "raydium"
+name = "raydium-plugin"
 path = "src/main.rs"
 
 [dependencies]
