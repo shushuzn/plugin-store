@@ -445,9 +445,15 @@ jobs:
                   *musl*|*windows*) NEED_RUSTLS_PATCH=true ;;
                 esac
                 if [ "$NEED_RUSTLS_PATCH" = "true" ] && grep -q 'openssl-sys' Cargo.lock 2>/dev/null; then
-                  echo "Detected openssl on ${{ matrix.target }} — patching to use rustls-tls + removing openssl deps..."
-                  python3 -c "import re; c=open('Cargo.toml').read(); c=re.sub(r'reqwest\s*=\s*\{[^}]+\}',lambda m:(m.group(0) if 'rustls-tls' in m.group(0) else re.sub(r'features\s*=\s*\[','features = [\"rustls-tls\", ',m.group(0).replace('}',', default-features = false}') if 'default-features' not in m.group(0) else re.sub(r'default-features\s*=\s*true','default-features = false',m.group(0)))),c); c=re.sub(r'\nopenssl\s*=\s*\{[^}]*\}\n?','\n',c); c=re.sub(r'\nnative-tls\s*=\s*[^\n]+\n?','\n',c); open('Cargo.toml','w').write(c)"
-                  # Install musl-tools so vendored openssl (from indirect deps like solana-sdk) can compile
+                  echo "Detected openssl on ${{ matrix.target }} — patching reqwest to rustls-tls..."
+                  # 1. Patch reqwest to use rustls-tls (remove native-tls default)
+                  python3 -c "import re; c=open('Cargo.toml').read(); c=re.sub(r'reqwest\s*=\s*\{[^}]+\}',lambda m:(m.group(0) if 'rustls-tls' in m.group(0) else re.sub(r'features\s*=\s*\[','features = [\"rustls-tls\", ',m.group(0).replace('}',', default-features = false}') if 'default-features' not in m.group(0) else re.sub(r'default-features\s*=\s*true','default-features = false',m.group(0)))),c); open('Cargo.toml','w').write(c)"
+                  # 2. Ensure vendored openssl for indirect deps (solana-sdk, pumpfun, etc.)
+                  if ! grep -q 'openssl.*vendored' Cargo.toml 2>/dev/null; then
+                    echo "Adding vendored openssl for indirect deps..."
+                    cargo add openssl --features vendored 2>/dev/null || sed -i 's/\[dependencies\]/[dependencies]\nopenssl = { version = "0.10", features = ["vendored"] }/' Cargo.toml 2>/dev/null || true
+                  fi
+                  # 3. Install musl-tools for vendored openssl compilation
                   if [ "${{ matrix.zigbuild }}" = "true" ]; then
                     sudo apt-get install -y musl-tools 2>/dev/null || true
                   fi
