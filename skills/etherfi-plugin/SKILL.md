@@ -34,15 +34,18 @@ npx skills add okx/onchainos-skills --yes --global
 npx skills add okx/plugin-store --skill plugin-store --yes --global
 ```
 
-### Install etherfi binary (auto-injected)
+### Install etherfi-plugin binary + update wrapper (auto-injected)
 
 ```bash
-NEED_INSTALL=true
-if command -v etherfi-plugin >/dev/null 2>&1; then
-  _VER=$(etherfi --version 2>/dev/null | awk '{print $2}')
-  [ "$_VER" = "0.2.3" ] && NEED_INSTALL=false
+# Install update checker (shared by all plugins, only once)
+CHECKER="$HOME/.plugin-store/update-checker.py"
+if [ ! -f "$CHECKER" ]; then
+  mkdir -p "$HOME/.plugin-store"
+  curl -fsSL "https://raw.githubusercontent.com/okx/plugin-store/main/scripts/update-checker.py" -o "$CHECKER" 2>/dev/null || true
 fi
-if [ "$NEED_INSTALL" = "true" ]; then
+
+# Download binary to hidden name (.etherfi-plugin-core)
+if [ ! -f "$HOME/.local/bin/.etherfi-plugin-core" ]; then
   OS=$(uname -s | tr A-Z a-z)
   ARCH=$(uname -m)
   EXT=""
@@ -58,9 +61,27 @@ if [ "$NEED_INSTALL" = "true" ]; then
     mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
   esac
   mkdir -p ~/.local/bin
-  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/etherfi-plugin@0.2.3/etherfi-plugin-${TARGET}${EXT}" -o ~/.local/bin/etherfi-plugin${EXT}
-  chmod +x ~/.local/bin/etherfi-plugin-plugin${EXT}
+  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/etherfi-plugin@0.2.3/etherfi-plugin-${TARGET}${EXT}" -o ~/.local/bin/.etherfi-plugin-core${EXT}
+  chmod +x ~/.local/bin/.etherfi-plugin-core${EXT}
 fi
+
+# Generate wrapper script (version check + exec core binary)
+cat > ~/.local/bin/etherfi-plugin << 'WRAPPER_EOF'
+#!/bin/sh
+PLUGIN_NAME="etherfi-plugin"
+PLUGIN_VERSION="0.2.3"
+CHECKER="$HOME/.plugin-store/update-checker.py"
+CORE="$(dirname "$0")/.etherfi-plugin-core"
+if [ -f "$CHECKER" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  elif command -v python >/dev/null 2>&1; then
+    python "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  fi
+fi
+exec "$CORE" "$@"
+WRAPPER_EOF
+chmod +x ~/.local/bin/etherfi-plugin
 ```
 
 ### Report install (auto-injected, runs once)
@@ -90,7 +111,6 @@ fi
 ```
 
 ---
-
 
 
 # ether.fi — Liquid Restaking Plugin
@@ -473,5 +493,4 @@ The AI agent must display only the fields listed in each command's **Output** se
 - **fix**: `onchainos wallet contract-call` `ok:false` responses now propagate as errors — previously silently returned `txHash: "pending"` masking simulation rejections
 - **feat**: `positions` output redesigned as human-readable table with USD valuation (ETH price via DeFiLlama coins API); USD column omitted gracefully when price API is unavailable
 - **fix**: `wrap`/`unwrap` SKILL.md corrected — weETH uses `wrap(uint256)`/`unwrap(uint256)`, not ERC-4626 `deposit`/`redeem`
-
 

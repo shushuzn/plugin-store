@@ -16,6 +16,7 @@ tags:
   - arbitrum
 ---
 
+
 ## Pre-flight Dependencies (auto-injected by Plugin Store CI)
 
 > Run once per session before first use. These checks ensure required tools are installed.
@@ -33,12 +34,18 @@ npx skills add okx/onchainos-skills --yes --global
 npx skills add okx/plugin-store --skill plugin-store --yes --global
 ```
 
-### Install pancakeswap-v2 binary (auto-injected)
+### Install pancakeswap-v2-plugin binary + update wrapper (auto-injected)
 
 ```bash
-REQUIRED_VERSION="0.2.3"
-INSTALLED_VERSION=$(pancakeswap-v2 --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
+# Install update checker (shared by all plugins, only once)
+CHECKER="$HOME/.plugin-store/update-checker.py"
+if [ ! -f "$CHECKER" ]; then
+  mkdir -p "$HOME/.plugin-store"
+  curl -fsSL "https://raw.githubusercontent.com/okx/plugin-store/main/scripts/update-checker.py" -o "$CHECKER" 2>/dev/null || true
+fi
+
+# Download binary to hidden name (.pancakeswap-v2-plugin-core)
+if [ ! -f "$HOME/.local/bin/.pancakeswap-v2-plugin-core" ]; then
   OS=$(uname -s | tr A-Z a-z)
   ARCH=$(uname -m)
   EXT=""
@@ -52,28 +59,29 @@ if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
     mingw*_x86_64|msys*_x86_64|cygwin*_x86_64)   TARGET="x86_64-pc-windows-msvc"; EXT=".exe" ;;
     mingw*_i686|msys*_i686|cygwin*_i686)           TARGET="i686-pc-windows-msvc"; EXT=".exe" ;;
     mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
-    *) echo "Unsupported platform: ${OS}_${ARCH}"; exit 1 ;;
   esac
-  BASE_URL="https://github.com/okx/plugin-store/releases/download/plugins/pancakeswap-v2-plugin@${REQUIRED_VERSION}"
   mkdir -p ~/.local/bin
-  curl -fsSL "${BASE_URL}/checksums.txt" -o /tmp/pancakeswap-v2-checksums.txt
-  curl -fsSL "${BASE_URL}/pancakeswap-v2-plugin-${TARGET}${EXT}" -o ~/.local/bin/pancakeswap-v2-plugin${EXT}
-  EXPECTED=$(grep "pancakeswap-v2-${TARGET}${EXT}" /tmp/pancakeswap-v2-checksums.txt | awk '{print $1}')
-  if command -v sha256sum >/dev/null 2>&1; then
-    ACTUAL=$(sha256sum ~/.local/bin/pancakeswap-v2-plugin${EXT} | awk '{print $1}')
-  elif command -v shasum >/dev/null 2>&1; then
-    ACTUAL=$(shasum -a 256 ~/.local/bin/pancakeswap-v2-plugin${EXT} | awk '{print $1}')
-  else
-    echo "Warning: cannot verify checksum (no sha256sum or shasum found)" && ACTUAL="$EXPECTED"
-  fi
-  if [ "$ACTUAL" != "$EXPECTED" ]; then
-    echo "Checksum mismatch for pancakeswap-v2-${TARGET}${EXT} — aborting install"
-    rm -f ~/.local/bin/pancakeswap-v2-plugin${EXT} /tmp/pancakeswap-v2-checksums.txt
-    exit 1
-  fi
-  rm -f /tmp/pancakeswap-v2-checksums.txt
-  chmod +x ~/.local/bin/pancakeswap-v2-plugin-plugin${EXT}
+  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/pancakeswap-v2-plugin@0.2.3/pancakeswap-v2-plugin-${TARGET}${EXT}" -o ~/.local/bin/.pancakeswap-v2-plugin-core${EXT}
+  chmod +x ~/.local/bin/.pancakeswap-v2-plugin-core${EXT}
 fi
+
+# Generate wrapper script (version check + exec core binary)
+cat > ~/.local/bin/pancakeswap-v2-plugin << 'WRAPPER_EOF'
+#!/bin/sh
+PLUGIN_NAME="pancakeswap-v2-plugin"
+PLUGIN_VERSION="0.2.3"
+CHECKER="$HOME/.plugin-store/update-checker.py"
+CORE="$(dirname "$0")/.pancakeswap-v2-plugin-core"
+if [ -f "$CHECKER" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  elif command -v python >/dev/null 2>&1; then
+    python "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  fi
+fi
+exec "$CORE" "$@"
+WRAPPER_EOF
+chmod +x ~/.local/bin/pancakeswap-v2-plugin
 ```
 
 ### Report install (auto-injected, runs once)
@@ -82,15 +90,19 @@ fi
 REPORT_FLAG="$HOME/.plugin-store/reported/pancakeswap-v2-plugin"
 if [ ! -f "$REPORT_FLAG" ]; then
   mkdir -p "$HOME/.plugin-store/reported"
+  # Device fingerprint → SHA256 → 32-char device ID
   DEV_RAW="$(hostname):$(uname -s):$(uname -m):$HOME"
   DEV_ID=$(echo -n "$DEV_RAW" | shasum -a 256 | head -c 32)
+  # HMAC signature (obfuscated key, same as CLI binary)
   _K=$(echo 'OE9nNWFRUFdfSVJkektrMExOV2RNeTIzV2JibXo3ZWNTbExJUDFIWnVoZw==' | base64 -d 2>/dev/null || echo 'OE9nNWFRUFdfSVJkektrMExOV2RNeTIzV2JibXo3ZWNTbExJUDFIWnVoZw==' | openssl base64 -d)
   HMAC_SIG=$(echo -n "${_K}${DEV_ID}" | shasum -a 256 | head -c 8)
   DIV_ID="${DEV_ID}${HMAC_SIG}"
   unset _K
+  # Report to Vercel stats
   curl -s -X POST "https://plugin-store-dun.vercel.app/install" \
     -H "Content-Type: application/json" \
     -d '{"name":"pancakeswap-v2-plugin","version":"0.2.3"}' >/dev/null 2>&1 || true
+  # Report to OKX API (with HMAC-signed device token)
   curl -s -X POST "https://www.okx.com/priapi/v1/wallet/plugins/download/report" \
     -H "Content-Type: application/json" \
     -d '{"pluginName":"pancakeswap-v2-plugin","divId":"'"$DIV_ID"'"}' >/dev/null 2>&1 || true
@@ -100,35 +112,6 @@ fi
 
 ---
 
-
-## Pre-flight Checks
-
-Before executing any write operation, verify the environment is ready:
-
-> **Version check**: Run `pancakeswap-v2 --version` and confirm it prints `pancakeswap-v2 0.2.3`. If the installed version is older, force-reinstall:
-> ```bash
-> OS=$(uname -s | tr A-Z a-z); ARCH=$(uname -m)
-> case "${OS}_${ARCH}" in
->   darwin_arm64)  TARGET="aarch64-apple-darwin" ;;
->   darwin_x86_64) TARGET="x86_64-apple-darwin" ;;
->   linux_x86_64)  TARGET="x86_64-unknown-linux-gnu" ;;
->   linux_aarch64) TARGET="aarch64-unknown-linux-gnu" ;;
-> esac
-> curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/pancakeswap-v2-plugin@0.2.3/pancakeswap-v2-plugin-${TARGET}" \
->   -o ~/.local/bin/pancakeswap-v2 && chmod +x ~/.local/bin/pancakeswap-v2-plugin
-> ```
-
-```bash
-# Check onchainos version (requires >= 0.1.0)
-onchainos --version
-
-# Verify wallet is authenticated
-onchainos wallet addresses --chain 56
-```
-
-If `onchainos wallet addresses` returns an error, run `onchainos wallet login` before proceeding.
-
----
 
 ## Do NOT use for
 
@@ -444,6 +427,4 @@ For Arbitrum One (42161): WETH `0x82aF49447D8a07e3bd95BD0d56f35241523fBab1`, USD
 - **feat**: Add Arbitrum One (chain 42161) support
 - **fix**: `remove-liquidity --dry-run` showed zero-address LP balance instead of user's real balance when `--from` was not passed
 - **fix**: `remove-liquidity` `expectedTokenA/B` overflowed u128 for large pools (BSC BNB/USDT), producing garbage withdrawal estimates
-
-
 

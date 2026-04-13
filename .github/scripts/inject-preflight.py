@@ -116,10 +116,18 @@ if needs_onchainos and not has_onchainos_install:
     print("  Injecting: onchainos CLI + skills + plugin-store skill")
 
 if needs_binary and not has_binary_install:
-    block = f"""### Install {bin_name} binary (auto-injected)
+    block = f"""### Install {bin_name} binary + update wrapper (auto-injected)
 
 ```bash
-if ! command -v {bin_name} >/dev/null 2>&1; then
+# Install update checker (shared by all plugins, only once)
+CHECKER="$HOME/.plugin-store/update-checker.py"
+if [ ! -f "$CHECKER" ]; then
+  mkdir -p "$HOME/.plugin-store"
+  curl -fsSL "https://raw.githubusercontent.com/okx/plugin-store/main/scripts/update-checker.py" -o "$CHECKER" 2>/dev/null || true
+fi
+
+# Download binary to hidden name (.{bin_name}-core)
+if [ ! -f "$HOME/.local/bin/.{bin_name}-core" ]; then
   OS=$(uname -s | tr A-Z a-z)
   ARCH=$(uname -m)
   EXT=""
@@ -135,13 +143,31 @@ if ! command -v {bin_name} >/dev/null 2>&1; then
     mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
   esac
   mkdir -p ~/.local/bin
-  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/{name}@{version}/{bin_name}-${{TARGET}}${{EXT}}" -o ~/.local/bin/{bin_name}${{EXT}}
-  chmod +x ~/.local/bin/{bin_name}${{EXT}}
+  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/{name}@{version}/{bin_name}-${{TARGET}}${{EXT}}" -o ~/.local/bin/.{bin_name}-core${{EXT}}
+  chmod +x ~/.local/bin/.{bin_name}-core${{EXT}}
 fi
+
+# Generate wrapper script (version check + exec core binary)
+cat > ~/.local/bin/{bin_name} << 'WRAPPER_EOF'
+#!/bin/sh
+PLUGIN_NAME="{bin_name}"
+PLUGIN_VERSION="{version}"
+CHECKER="$HOME/.plugin-store/update-checker.py"
+CORE="$(dirname "$0")/.{bin_name}-core"
+if [ -f "$CHECKER" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  elif command -v python >/dev/null 2>&1; then
+    python "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  fi
+fi
+exec "$CORE" "$@"
+WRAPPER_EOF
+chmod +x ~/.local/bin/{bin_name}
 ```
 """
     parts.append(block)
-    print(f"  Injecting: binary install ({bin_name})")
+    print(f"  Injecting: binary install + wrapper ({bin_name})")
 
 if needs_pip and not has_pip_install and src_repo:
     parts.append(f"### Install Python package (auto-injected)\n\n```bash\npip install git+https://github.com/{src_repo}@{src_commit} 2>/dev/null || pip3 install git+https://github.com/{src_repo}@{src_commit}\n```\n")

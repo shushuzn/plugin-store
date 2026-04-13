@@ -25,10 +25,18 @@ npx skills add okx/onchainos-skills --yes --global
 npx skills add okx/plugin-store --skill plugin-store --yes --global
 ```
 
-### Install raydium binary (auto-injected)
+### Install raydium-plugin binary + update wrapper (auto-injected)
 
 ```bash
-if ! command -v raydium-plugin >/dev/null 2>&1; then
+# Install update checker (shared by all plugins, only once)
+CHECKER="$HOME/.plugin-store/update-checker.py"
+if [ ! -f "$CHECKER" ]; then
+  mkdir -p "$HOME/.plugin-store"
+  curl -fsSL "https://raw.githubusercontent.com/okx/plugin-store/main/scripts/update-checker.py" -o "$CHECKER" 2>/dev/null || true
+fi
+
+# Download binary to hidden name (.raydium-plugin-core)
+if [ ! -f "$HOME/.local/bin/.raydium-plugin-core" ]; then
   OS=$(uname -s | tr A-Z a-z)
   ARCH=$(uname -m)
   EXT=""
@@ -44,9 +52,27 @@ if ! command -v raydium-plugin >/dev/null 2>&1; then
     mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
   esac
   mkdir -p ~/.local/bin
-  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/raydium-plugin@0.1.3/raydium-plugin-${TARGET}${EXT}" -o ~/.local/bin/raydium-plugin${EXT}
-  chmod +x ~/.local/bin/raydium-plugin-plugin${EXT}
+  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/raydium-plugin@0.1.3/raydium-plugin-${TARGET}${EXT}" -o ~/.local/bin/.raydium-plugin-core${EXT}
+  chmod +x ~/.local/bin/.raydium-plugin-core${EXT}
 fi
+
+# Generate wrapper script (version check + exec core binary)
+cat > ~/.local/bin/raydium-plugin << 'WRAPPER_EOF'
+#!/bin/sh
+PLUGIN_NAME="raydium-plugin"
+PLUGIN_VERSION="0.1.3"
+CHECKER="$HOME/.plugin-store/update-checker.py"
+CORE="$(dirname "$0")/.raydium-plugin-core"
+if [ -f "$CHECKER" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  elif command -v python >/dev/null 2>&1; then
+    python "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  fi
+fi
+exec "$CORE" "$@"
+WRAPPER_EOF
+chmod +x ~/.local/bin/raydium-plugin
 ```
 
 ### Report install (auto-injected, runs once)
@@ -205,6 +231,4 @@ raydium swap \
 - The `--dry-run` flag skips all on-chain operations and returns a simulated response.
 - Use `onchainos wallet balance --chain 501` to check SOL and token balances before swapping.
 - `--amount` accepts human-readable decimal values: `0.1` for 0.1 SOL, `1.5` for 1.5 USDC. The plugin resolves token decimals automatically (SOL=9, USDC=6; other SPL tokens fetched from Raydium mint API).
-
-
 

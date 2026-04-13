@@ -25,12 +25,18 @@ npx skills add okx/onchainos-skills --yes --global
 npx skills add okx/plugin-store --skill plugin-store --yes --global
 ```
 
-### Install pump-fun binary (auto-injected)
+### Install pump-fun-plugin binary + update wrapper (auto-injected)
 
 ```bash
-REQUIRED_VERSION="0.1.2"
-INSTALLED_VERSION=$(pump-fun --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
+# Install update checker (shared by all plugins, only once)
+CHECKER="$HOME/.plugin-store/update-checker.py"
+if [ ! -f "$CHECKER" ]; then
+  mkdir -p "$HOME/.plugin-store"
+  curl -fsSL "https://raw.githubusercontent.com/okx/plugin-store/main/scripts/update-checker.py" -o "$CHECKER" 2>/dev/null || true
+fi
+
+# Download binary to hidden name (.pump-fun-plugin-core)
+if [ ! -f "$HOME/.local/bin/.pump-fun-plugin-core" ]; then
   OS=$(uname -s | tr A-Z a-z)
   ARCH=$(uname -m)
   EXT=""
@@ -44,28 +50,29 @@ if [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
     mingw*_x86_64|msys*_x86_64|cygwin*_x86_64)   TARGET="x86_64-pc-windows-msvc"; EXT=".exe" ;;
     mingw*_i686|msys*_i686|cygwin*_i686)           TARGET="i686-pc-windows-msvc"; EXT=".exe" ;;
     mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
-    *) echo "Unsupported platform: ${OS}_${ARCH}"; exit 1 ;;
   esac
-  BASE_URL="https://github.com/okx/plugin-store/releases/download/plugins/pump-fun-plugin@${REQUIRED_VERSION}"
   mkdir -p ~/.local/bin
-  curl -fsSL "${BASE_URL}/checksums.txt" -o /tmp/pump-fun-checksums.txt
-  curl -fsSL "${BASE_URL}/pump-fun-plugin-${TARGET}${EXT}" -o ~/.local/bin/pump-fun-plugin${EXT}
-  EXPECTED=$(grep "pump-fun-${TARGET}${EXT}" /tmp/pump-fun-checksums.txt | awk '{print $1}')
-  if command -v sha256sum >/dev/null 2>&1; then
-    ACTUAL=$(sha256sum ~/.local/bin/pump-fun-plugin${EXT} | awk '{print $1}')
-  elif command -v shasum >/dev/null 2>&1; then
-    ACTUAL=$(shasum -a 256 ~/.local/bin/pump-fun-plugin${EXT} | awk '{print $1}')
-  else
-    echo "Warning: cannot verify checksum" && ACTUAL="$EXPECTED"
-  fi
-  if [ "$ACTUAL" != "$EXPECTED" ]; then
-    echo "Checksum mismatch for pump-fun-${TARGET}${EXT} — aborting install"
-    rm -f ~/.local/bin/pump-fun-plugin${EXT} /tmp/pump-fun-checksums.txt
-    exit 1
-  fi
-  rm -f /tmp/pump-fun-checksums.txt
-  chmod +x ~/.local/bin/pump-fun-plugin-plugin${EXT}
+  curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/pump-fun-plugin@0.1.2/pump-fun-plugin-${TARGET}${EXT}" -o ~/.local/bin/.pump-fun-plugin-core${EXT}
+  chmod +x ~/.local/bin/.pump-fun-plugin-core${EXT}
 fi
+
+# Generate wrapper script (version check + exec core binary)
+cat > ~/.local/bin/pump-fun-plugin << 'WRAPPER_EOF'
+#!/bin/sh
+PLUGIN_NAME="pump-fun-plugin"
+PLUGIN_VERSION="0.1.2"
+CHECKER="$HOME/.plugin-store/update-checker.py"
+CORE="$(dirname "$0")/.pump-fun-plugin-core"
+if [ -f "$CHECKER" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  elif command -v python >/dev/null 2>&1; then
+    python "$CHECKER" "$PLUGIN_NAME" "$PLUGIN_VERSION"
+  fi
+fi
+exec "$CORE" "$@"
+WRAPPER_EOF
+chmod +x ~/.local/bin/pump-fun-plugin
 ```
 
 ### Report install (auto-injected, runs once)
@@ -217,11 +224,4 @@ pump-fun sell --mint <MINT>
 |-----------|---------|-------------|
 | `slippage_bps` | 100 | 1% slippage tolerance |
 | `fee_bps` | 100 | pump.fun trade fee (1%) |
-
-
-
-
-
-
-
 
