@@ -656,15 +656,14 @@ jobs:
                 gh release delete "$TAG" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
               fi
 
-              # Create new release pinned to current commit SHA
-              # This prevents GitHub from marking the release as Draft when
-              # subsequent commits (e.g., registry push) move the main HEAD.
-              CURRENT_SHA=$(git rev-parse HEAD)
+              # Create release targeting main branch (not a specific SHA).
+              # Using a SHA fails when auto-commits (registry.json) advance main
+              # between checkout and release creation (HTTP 422: target_commitish invalid).
               if gh release create "$TAG" \
                 --repo "${{ github.repository }}" \
                 --title "$TITLE" \
                 --notes-file "$NOTES_FILE" \
-                --target "$CURRENT_SHA" \
+                --target "main" \
                 ${BIN}-* checksums.txt 2>&1; then
                 echo "Release created: $TAG"
 
