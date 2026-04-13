@@ -298,3 +298,4 @@ kamino-liquidity withdraw --vault <address> --amount <shares> [--chain 501] [--w
 - All write operations require explicit user confirmation via `--confirm` before broadcasting
 - Never share your private key or seed phrase
 
+
