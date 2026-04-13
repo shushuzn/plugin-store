@@ -852,3 +852,4 @@ All data returned by `hyperliquid positions`, `hyperliquid prices`, and exchange
 - **feat**: `order` — new `--isolated` flag to use isolated margin mode when `--leverage` is set (default is cross)
 - **fix**: `withdraw` — add $1 USDC fee notice in preview and output; balance check now validates amount + $1 fee; minimum withdrawal error changed from warning to bail
 
+
