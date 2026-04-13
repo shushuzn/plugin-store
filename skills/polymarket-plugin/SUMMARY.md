@@ -1,13 +1,15 @@
-# polymarket
-Trade prediction markets on Polymarket — buy and sell YES/NO outcome tokens on Polygon.
+
+# polymarket-plugin
+
+Trade prediction markets on Polymarket — buy and sell YES/NO outcome tokens on real-world events using USDC.e on Polygon.
 
 ## Highlights
-- Browse active prediction markets with keyword filtering
-- Buy YES/NO outcome tokens with USDC.e collateral
-- Sell existing positions with limit or market orders
-- View open positions with real-time P&L tracking
-- Cancel individual or bulk orders
-- Uses onchainos wallet for EIP-712 signing — no separate key setup required
-- Supports both regular and negative risk markets
-- Direct integration with Polymarket CLOB API
+- Buy and sell outcome tokens on Polymarket prediction markets
+- Support for both binary (YES/NO) and categorical markets
+- Two trading modes: direct EOA trading or gasless proxy wallet trading
+- Check positions and PnL across all markets
+- Cancel open orders and redeem winning tokens
+- Built-in region restriction checking for compliance
+- Automatic API credential derivation from wallet signatures
+- On-chain settlement with USDC.e on Polygon mainnet
 
