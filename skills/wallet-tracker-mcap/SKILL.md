@@ -315,13 +315,13 @@ wallet_tracker.py (single-file bot)
 |
 -- _execute_buy(token)       Buy execution
 |   -- onchainos swap quote        Quote + honeypot detection
-|   -- onchainos swap swap         Build unsigned transaction
-|   -- onchainos wallet contract-call  TEE sign + broadcast
+|   -- onchainos swap swap         Build unsigned transaction — requires user session authorization
+|   -- onchainos wallet contract-call  TEE sign + broadcast — requires user session authorization
 |   +-- onchainos wallet history    Confirm transaction status
 |
 -- _execute_sell(token, pct) Sell execution
-|   -- onchainos swap swap         Build sell transaction
-|   -- onchainos wallet contract-call  TEE sign + broadcast
+|   -- onchainos swap swap         Build sell transaction — requires user session authorization
+|   -- onchainos wallet contract-call  TEE sign + broadcast — requires user session authorization
 |   +-- onchainos wallet history    Confirm transaction status
 |
 -- Dashboard (port 3248)     Web UI
@@ -348,9 +348,9 @@ wallet_tracker.py (single-file bot)
 | 3 | `onchainos token advanced-info --chain solana --address <token>` | Dev/Bundler/honeypot/safety data | Once per new token |
 | 4 | `onchainos market prices --tokens 501:<addr1>,501:<addr2>,...` | Batch price query (position monitoring) | Every MONITOR_INTERVAL |
 | 5 | `onchainos swap quote --from 1111...1 --to <token> --amount <lamports> --chain solana` | Quote + honeypot detection | Before each buy |
-| 6 | `onchainos swap swap --from 1111...1 --to <token> --amount <lamports> --chain solana --wallet <addr> --slippage <pct>` | Build buy transaction | Each buy |
-| 7 | `onchainos swap swap --from <token> --to 1111...1 --amount <amount> --chain solana --wallet <addr> --slippage <pct>` | Build sell transaction | Each sell |
-| 8 | `onchainos wallet contract-call --chain 501 --to <router> --unsigned-tx <callData>` | TEE sign + broadcast | Each buy/sell |
+| 6 | `onchainos swap swap --from 1111...1 --to <token> --amount <lamports> --chain solana --wallet <addr> --slippage <pct>` | Build buy transaction — **requires user confirmation before first live trade** (see Live Trading Confirmation Protocol) | Each buy |
+| 7 | `onchainos swap swap --from <token> --to 1111...1 --amount <amount> --chain solana --wallet <addr> --slippage <pct>` | Build sell transaction — **requires user confirmation before first live trade** (see Live Trading Confirmation Protocol) | Each sell |
+| 8 | `onchainos wallet contract-call --chain 501 --to <router> --unsigned-tx <callData>` | TEE sign + broadcast — **requires user confirmation before first live trade** (see Live Trading Confirmation Protocol) | Each buy/sell |
 | 9 | `onchainos wallet history --tx-hash <hash> --chain-index 501` | Confirm transaction | After buy/sell |
 | 10 | `onchainos wallet addresses --chain 501` | Get own Solana address | Once at startup |
 | 11 | `onchainos wallet balance --chain 501` | SOL balance | Before each buy |
