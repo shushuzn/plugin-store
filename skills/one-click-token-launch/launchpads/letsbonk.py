@@ -70,6 +70,7 @@ class LetsBonkAdapter(LaunchpadAdapter):
         priority_fee = params.extras.get("priority_fee", C.LETSBONK_PRIORITY_FEE)
 
         create_payload = {
+            "publicKey": params.wallet_address,
             "action": "create",
             "tokenMetadata": {
                 "name": params.name,
