@@ -1,34 +1,27 @@
-# Pendle Finance Plugin — Summary
 
-Interact with Pendle Finance yield tokenization markets. Buy and sell PT (Principal Tokens) for fixed yield, trade YT (Yield Tokens) for floating yield exposure, provide or remove AMM liquidity, and mint or redeem PT+YT pairs from underlying assets.
+# pendle-plugin -- Skill Summary
+
+## Overview
+The pendle-plugin enables AI agents to interact with Pendle Finance's yield tokenization protocol, allowing users to trade fixed-yield Principal Tokens (PT), speculate on Yield Tokens (YT), provide liquidity to AMM pools, and mint/redeem PT+YT pairs from underlying assets. The plugin supports operations across Ethereum, Arbitrum, BSC, and Base networks with comprehensive market data access and position management.
+
+## Usage
+Install the plugin through the auto-injected dependencies, then use commands like `pendle list-markets` to browse available pools or `pendle buy-pt` to purchase fixed-yield tokens. All write operations require a dry-run preview and user confirmation before execution.
 
 ## Commands
+| Command | Purpose |
+|---------|---------|
+| `list-markets` | Browse available Pendle markets and pools |
+| `get-market` | Get detailed market information and APY history |
+| `get-positions` | View current Pendle token holdings and positions |
+| `get-asset-price` | Check prices for PT, YT, LP, or SY tokens |
+| `buy-pt` | Purchase Principal Tokens for fixed yield exposure |
+| `sell-pt` | Sell Principal Tokens back to underlying assets |
+| `buy-yt` | Buy Yield Tokens for floating yield speculation |
+| `sell-yt` | Sell Yield Tokens back to underlying assets |
+| `add-liquidity` | Provide single-token liquidity to Pendle AMM |
+| `remove-liquidity` | Withdraw liquidity from Pendle AMM pools |
+| `mint-py` | Mint PT+YT pairs from underlying tokens |
+| `redeem-py` | Redeem PT+YT pairs back to underlying assets |
 
-| Command | Description |
-|---------|-------------|
-| `list-markets` | Browse active Pendle markets with APY, expiry, and liquidity data |
-| `get-market` | Get historical APY and market details for a specific pool |
-| `get-positions` | View current PT, YT, and LP positions for a wallet |
-| `get-asset-price` | Look up USD price of PT, YT, LP, or SY tokens |
-| `buy-pt` | Buy Principal Token to lock in a fixed yield rate |
-| `sell-pt` | Sell PT back to an underlying token before expiry |
-| `buy-yt` | Buy Yield Token to go long on floating yield |
-| `sell-yt` | Sell YT back to an underlying token |
-| `add-liquidity` | Provide single-token liquidity to a Pendle AMM pool |
-| `remove-liquidity` | Withdraw single-token liquidity from a Pendle AMM pool |
-| `mint-py` | Mint PT + YT from an underlying token (yield tokenization) |
-| `redeem-py` | Redeem equal amounts of PT + YT back to underlying |
-
-## Trigger Phrases
-
-- "buy PT on Pendle", "lock in fixed yield", "Pendle fixed APY"
-- "sell PT Pendle", "exit fixed yield position"
-- "buy YT Pendle", "long floating yield", "speculate on Pendle yield"
-- "sell YT", "exit yield token position"
-- "add liquidity to Pendle", "become Pendle LP", "deposit into Pendle pool"
-- "remove liquidity from Pendle", "withdraw from Pendle LP"
-- "mint PT and YT", "tokenize yield Pendle", "split yield Pendle"
-- "redeem PT YT", "burn PT YT for underlying"
-- "list Pendle markets", "Pendle market APY", "Pendle pools"
-- "my Pendle positions", "Pendle portfolio", "what PT do I hold"
-- Chinese: 购买PT, 出售PT, 购买YT, 出售YT, Pendle固定收益, Pendle流动性
+## Triggers
+Activate this skill when users mention Pendle-related operations like "buy PT", "sell YT", "Pendle fixed yield", "add Pendle liquidity", "mint PT YT", "Pendle positions", or "Pendle markets". The skill should also trigger for yield trading, fixed yield strategies, and liquidity provision discussions related to Pendle Finance.
