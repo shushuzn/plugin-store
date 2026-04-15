@@ -1,19 +1,19 @@
 
-# kamino-liquidity -- Skill Summary
+# kamino-liquidity-plugin -- Skill Summary
 
 ## Overview
-This skill provides access to Kamino Liquidity KVault earn vaults on Solana, enabling users to deposit single tokens into auto-compounding vaults that automatically allocate liquidity to generate yield. Users receive vault shares representing their proportional stake and can track positions across multiple vaults while earning optimized returns through Kamino's automated strategies.
+This skill provides access to Kamino Liquidity KVault earn vaults on Solana, allowing users to deposit tokens into auto-compounding vaults that generate yield through automated liquidity allocation strategies. Users can view available vaults, track their positions, deposit tokens to earn yield, and withdraw their shares back to underlying tokens.
 
 ## Usage
-Run commands with `kamino-liquidity <command>` on Solana mainnet (chain 501). Write operations require user confirmation and use `--dry-run` to preview transactions before execution.
+Install the plugin and use commands like `kamino-liquidity vaults` to browse vaults, `kamino-liquidity deposit --vault <address> --amount <amount>` to invest, and `kamino-liquidity withdraw --vault <address> --amount <shares>` to exit positions. All write operations require user confirmation.
 
 ## Commands
 | Command | Description |
 |---------|-------------|
-| `vaults` | List all available KVault earn vaults with filtering options |
-| `positions` | View current share balances across all user's vault positions |
-| `deposit` | Deposit tokens into a vault to earn yield (requires confirmation) |
-| `withdraw` | Redeem vault shares for underlying tokens (requires confirmation) |
+| `vaults` | List all available KVault earn vaults with optional filtering |
+| `positions` | View your share balances across all vaults |
+| `deposit` | Deposit tokens into a vault to earn yield |
+| `withdraw` | Redeem shares for underlying tokens |
 
 ## Triggers
-Activate when users mention Kamino vault operations, liquidity farming, yield earning, or want to deposit/withdraw from KVaults on Solana. Also responds to Chinese terms like Kamino流动性, Kamino保险库, and 存入Kamino.
+Activate when users mention Kamino vaults, Kamino liquidity, depositing to Kamino, Kamino earn, KVault, or Kamino yield vault operations. Also responds to Chinese phrases like Kamino流动性, Kamino保险库, 存入Kamino, or Kamino赚取收益.
