@@ -1,13 +1,13 @@
-# lido
-Stake ETH with Lido liquid staking protocol to receive stETH, manage withdrawals, and track staking rewards on Ethereum mainnet.
+# lido-plugin
+A plugin for staking ETH with Lido liquid staking protocol to receive stETH, manage withdrawals, and track staking rewards on Ethereum mainnet.
 
 ## Highlights
-- Stake ETH to receive liquid stETH tokens that earn daily rewards
-- Get current 7-day average staking APR from Lido protocol
-- Check stETH balance for any address on Ethereum mainnet
-- Request withdrawals to convert stETH back to ETH via withdrawal queue
-- List pending and past withdrawal requests with status tracking
-- Claim finalized withdrawals to receive ETH back to your wallet
-- Built-in safety with user confirmation required for all write operations
-- Direct integration with onchainos CLI for secure transaction signing
+- Stake ETH to receive stETH (liquid staking tokens)
+- Check current stETH APY and staking rewards
+- Query stETH balances for any address
+- Request withdrawals from stETH back to ETH
+- Monitor withdrawal request status and timelines
+- Claim finalized withdrawals when ready
+- Wrap/unwrap between stETH and wstETH
+- All operations secured through onchainos CLI with user confirmation
 
