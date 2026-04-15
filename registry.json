@@ -376,7 +376,7 @@
     },
     {
       "name": "meteora",
-      "version": "0.3.6",
+      "version": "0.3.7",
       "description": "Meteora DLMM plugin for Solana — search liquidity pools, get swap quotes, view user positions, execute token swaps, add and remove liquidity",
       "author": {
         "name": "OKX"
