@@ -1,7 +1,7 @@
 ---
 name: aave-v3-plugin
 description: "Aave V3 lending and borrowing. Trigger phrases: supply to aave, deposit to aave, borrow from aave, repay aave loan, aave health factor, my aave positions, aave interest rates, enable emode, disable collateral, claim aave rewards."
-version: "0.2.5"
+version: "0.2.6"
 author: "skylavis-sky"
 tags:
   - lending
@@ -26,7 +26,7 @@ tags:
 # Check for skill updates (1-hour cache)
 UPDATE_CACHE="$HOME/.plugin-store/update-cache/aave-v3-plugin"
 CACHE_MAX=3600
-LOCAL_VER="0.2.4"
+LOCAL_VER="0.2.6"
 DO_CHECK=true
 
 if [ -f "$UPDATE_CACHE" ]; then
@@ -99,7 +99,7 @@ case "${OS}_${ARCH}" in
   mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
 esac
 mkdir -p ~/.local/bin
-curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/aave-v3-plugin@0.2.4/aave-v3-plugin-${TARGET}${EXT}" -o ~/.local/bin/.aave-v3-plugin-core${EXT}
+curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/aave-v3-plugin@0.2.6/aave-v3-plugin-${TARGET}${EXT}" -o ~/.local/bin/.aave-v3-plugin-core${EXT}
 chmod +x ~/.local/bin/.aave-v3-plugin-core${EXT}
 
 # Symlink CLI name to universal launcher
@@ -107,7 +107,7 @@ ln -sf "$LAUNCHER" ~/.local/bin/aave-v3-plugin
 
 # Register version
 mkdir -p "$HOME/.plugin-store/managed"
-echo "0.2.4" > "$HOME/.plugin-store/managed/aave-v3-plugin"
+echo "0.2.6" > "$HOME/.plugin-store/managed/aave-v3-plugin"
 ```
 
 ### Report install (auto-injected, runs once)
@@ -127,7 +127,7 @@ if [ ! -f "$REPORT_FLAG" ]; then
   # Report to Vercel stats
   curl -s -X POST "https://plugin-store-dun.vercel.app/install" \
     -H "Content-Type: application/json" \
-    -d '{"name":"aave-v3-plugin","version":"0.2.4"}' >/dev/null 2>&1 || true
+    -d '{"name":"aave-v3-plugin","version":"0.2.6"}' >/dev/null 2>&1 || true
   # Report to OKX API (with HMAC-signed device token)
   curl -s -X POST "https://www.okx.com/priapi/v1/wallet/plugins/download/report" \
     -H "Content-Type: application/json" \
@@ -324,7 +324,7 @@ aave-v3-plugin --chain 42161 --confirm borrow --asset 0x82aF49447D8a07e3bd95BD0d
 ```
 
 **Key parameters:**
-- `--asset` — ERC-20 contract address (checksummed). Borrow and repay require the address, not symbol.
+- `--asset` — token symbol (e.g. USDC, WETH) or ERC-20 contract address
 - `--amount` — human-readable amount in token units (0.5 WETH = `0.5`)
 
 **Notes:**
@@ -459,7 +459,9 @@ aave-v3-plugin --chain 8453 reserves --asset 0x833589fCD6eDb6E08f4c7C32D4f71b54b
 
 **Trigger phrases:** "my aave positions", "aave portfolio", "我的Aave仓位", "Aave持仓"
 
-**Data source:** On-chain only — calls `Pool.getUserAccountData(address)` directly via public RPC. Returns aggregate totals. Per-asset supply/borrow breakdown is not included; use `aave-v3-plugin reserves` to see available markets.
+**Data source:** Two sources combined:
+- On-chain `Pool.getUserAccountData`: aggregate health factor, LTV, liquidation threshold
+- `onchainos defi position-detail` (Aave V3 platform 10): per-asset SUPPLY / BORROW breakdown
 
 **Usage:**
 ```bash
@@ -483,8 +485,14 @@ aave-v3-plugin --chain 1 positions --from 0xSomeAddress
   "availableBorrowsUSD": "2000.00",
   "currentLiquidationThreshold": "82.50%",
   "loanToValue": "75.00%",
-  "dataSource": "on-chain — Pool.getUserAccountData (aggregate totals only)",
-  "note": "Per-asset supply/borrow breakdown requires querying Pool.getUserReserveData for each reserve. Use `aave-v3-plugin reserves` to see available markets."
+  "positions": {
+    "supply": [
+      { "asset": "USDC", "tokenAddress": "0x833589...", "amount": "1000.00", "valueUSD": "1000.00", "marketId": "0xa238dd..." }
+    ],
+    "borrow": [
+      { "asset": "WETH", "tokenAddress": "0x4200000...", "amount": "0.25", "valueUSD": "500.00", "marketId": "0xa238dd..." }
+    ]
+  }
 }
 ```
 </external-content>
@@ -544,7 +552,7 @@ aave-v3-plugin --chain 8453 --confirm claim-rewards
 
 ## Asset Address Reference
 
-For borrow and repay, you need ERC-20 contract addresses. Common addresses:
+Symbols (e.g. USDC, WETH) are accepted for all commands. Common addresses for reference:
 
 ### Base (8453)
 | Symbol | Address |
