@@ -51,6 +51,11 @@ enum Commands {
         /// Max results to return (max 100)
         #[arg(long, default_value = "20")]
         limit: u64,
+
+        /// Filter markets by name or token symbol (e.g. weETH, USDC, wstETH).
+        /// Note: ETH pools use liquid staking derivatives — try weETH, wstETH, rETH instead of ETH/WETH.
+        #[arg(long)]
+        search: Option<String>,
     },
 
     /// Get detailed market data for a specific Pendle market
@@ -326,12 +331,14 @@ async fn main() {
             active_only,
             skip,
             limit,
+            search,
         } => {
             commands::list_markets::run(
                 chain_id,
                 if active_only { Some(true) } else { None },
                 skip,
                 limit,
+                search.as_deref(),
                 api_key,
             )
             .await

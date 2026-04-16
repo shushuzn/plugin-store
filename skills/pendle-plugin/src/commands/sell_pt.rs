@@ -59,10 +59,12 @@ pub async fn run(
 
     let (calldata, router_to) = api::extract_sdk_calldata(&sdk_resp)?;
     let approvals = api::extract_required_approvals(&sdk_resp);
+    let price_impact_pct = api::extract_price_impact(&sdk_resp);
+    let high_impact = price_impact_pct.map_or(false, |p| p > 1.0);
 
     // Preview gate: show SDK quote without executing
     if !confirm && !dry_run {
-        return Ok(serde_json::json!({
+        let mut preview = serde_json::json!({
             "ok": true,
             "preview": true,
             "note": "Preview — add --confirm to execute on-chain.",
@@ -75,7 +77,15 @@ pub async fn run(
             "calldata": calldata,
             "wallet": wallet,
             "required_approvals": approvals.len(),
-        }));
+            "price_impact_pct": price_impact_pct.map(|p| format!("{:.2}", p)),
+        });
+        if high_impact {
+            preview["warning"] = serde_json::json!(format!(
+                "High price impact: {:.2}% — consider reducing position size or choosing a more liquid pool.",
+                price_impact_pct.unwrap_or(0.0)
+            ));
+        }
+        return Ok(preview);
     }
 
     let amount_in_wei: u128 = amount_in.parse().map_err(|_| anyhow::anyhow!("Failed to parse amount-in: '{}'", amount_in))?;
@@ -108,7 +118,7 @@ pub async fn run(
 
     let tx_hash = onchainos::extract_tx_hash(&result)?;
 
-    Ok(serde_json::json!({
+    let mut result = serde_json::json!({
         "ok": true,
         "operation": "sell-pt",
         "chain_id": chain_id,
@@ -121,6 +131,14 @@ pub async fn run(
         "wallet": wallet,
         "approve_txs": approve_hashes,
         "tx_hash": tx_hash,
-        "dry_run": dry_run
-    }))
+        "dry_run": dry_run,
+        "price_impact_pct": price_impact_pct.map(|p| format!("{:.2}", p)),
+    });
+    if high_impact {
+        result["warning"] = serde_json::json!(format!(
+            "High price impact: {:.2}% — consider reducing position size or choosing a more liquid pool.",
+            price_impact_pct.unwrap_or(0.0)
+        ));
+    }
+    Ok(result)
 }

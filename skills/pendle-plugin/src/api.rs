@@ -339,6 +339,17 @@ pub fn extract_sdk_calldata(response: &Value) -> anyhow::Result<(String, String)
     Ok((calldata, to))
 }
 
+/// Extract price impact from SDK convert response.
+/// The SDK reports priceImpact as a negative decimal (e.g. -0.015 = 1.5% loss).
+/// Returns Some(pct) as a positive percentage value, or None if the field is absent.
+pub fn extract_price_impact(response: &Value) -> Option<f64> {
+    let route = response["routes"].as_array()?.first()?;
+    let impact = route["data"]["priceImpact"]
+        .as_f64()
+        .or_else(|| route["data"]["price_impact"].as_f64())?;
+    Some(impact.abs() * 100.0)
+}
+
 /// Extract required approvals from SDK convert response
 pub fn extract_required_approvals(response: &Value) -> Vec<(String, String)> {
     // Returns list of (token_address, spender_address) pairs
