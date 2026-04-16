@@ -59,6 +59,7 @@ pub async fn run(
 
     let (calldata, router_to) = api::extract_sdk_calldata(&sdk_resp)?;
     let approvals = api::extract_required_approvals(&sdk_resp);
+    let expected_token_out = api::extract_amount_out(&sdk_resp);
     let price_impact_pct = api::extract_price_impact(&sdk_resp);
     let high_impact = price_impact_pct.map_or(false, |p| p > 1.0);
 
@@ -73,6 +74,7 @@ pub async fn run(
             "pt_address": pt_address,
             "amount_in": amount_in,
             "token_out": token_out,
+            "expected_token_out": expected_token_out,
             "router": router_to,
             "calldata": calldata,
             "wallet": wallet,
@@ -126,6 +128,7 @@ pub async fn run(
         "amount_in": amount_in,
         "token_out": token_out,
         "min_token_out": min_token_out,
+        "expected_token_out": expected_token_out,
         "router": router_to,
         "calldata": calldata,
         "wallet": wallet,

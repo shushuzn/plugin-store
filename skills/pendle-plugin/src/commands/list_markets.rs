@@ -43,7 +43,15 @@ pub async fn run(
 
     let is_eth_search = matches!(term_lower.as_str(), "eth" | "weth");
 
-    let hint: Option<String> = if filtered.is_empty() && is_eth_search {
+    let hint: Option<String> = if is_eth_search && !filtered.is_empty() {
+        // Results found but user searched for raw ETH/WETH — clarify these are derivatives
+        Some(
+            "These are ETH liquid staking/restaking derivative pools — Pendle does not have \
+             raw ETH or WETH pools. All ETH yield on Pendle uses derivatives such as weETH, \
+             wstETH, rETH, rsETH, ezETH, sfrxETH, or cbETH as the underlying."
+                .to_string(),
+        )
+    } else if filtered.is_empty() && is_eth_search {
         Some(
             "No markets found for 'ETH'/'WETH' directly. Pendle ETH pools use liquid \
              staking/restaking derivatives — try searching for: weETH, wstETH, rETH, \

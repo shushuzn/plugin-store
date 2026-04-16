@@ -339,6 +339,24 @@ pub fn extract_sdk_calldata(response: &Value) -> anyhow::Result<(String, String)
     Ok((calldata, to))
 }
 
+/// Extract the expected output amount from SDK convert response.
+/// Tries Pendle-specific field names (netPtOut, netYtOut, netLpOut, netTokenOut)
+/// then falls back to generic names (amountOut, outputAmount).
+/// Returns the value as a decimal string, or None if not present.
+pub fn extract_amount_out(response: &Value) -> Option<String> {
+    let route = response["routes"].as_array()?.first()?;
+    let data = &route["data"];
+    for field in &["netPtOut", "netYtOut", "netLpOut", "netTokenOut", "amountOut", "outputAmount"] {
+        if let Some(s) = data[field].as_str() {
+            return Some(s.to_string());
+        }
+        if let Some(n) = data[field].as_u64() {
+            return Some(n.to_string());
+        }
+    }
+    None
+}
+
 /// Extract price impact from SDK convert response.
 /// The SDK reports priceImpact as a negative decimal (e.g. -0.015 = 1.5% loss).
 /// Returns Some(pct) as a positive percentage value, or None if the field is absent.

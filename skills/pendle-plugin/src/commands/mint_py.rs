@@ -67,6 +67,7 @@ pub async fn run(
 
     let (calldata, router_to) = api::extract_sdk_calldata(&sdk_resp)?;
     let approvals = api::extract_required_approvals(&sdk_resp);
+    let expected_py_out = api::extract_amount_out(&sdk_resp);
 
     // Preview gate: show SDK quote without executing
     if !confirm && !dry_run {
@@ -80,6 +81,7 @@ pub async fn run(
             "amount_in": amount_in,
             "pt_address": pt_address,
             "yt_address": yt_address,
+            "expected_py_out": expected_py_out,
             "router": router_to,
             "calldata": calldata,
             "wallet": wallet,
@@ -125,6 +127,7 @@ pub async fn run(
         "amount_in": amount_in,
         "pt_address": pt_address,
         "yt_address": yt_address,
+        "expected_py_out": expected_py_out,
         "router": router_to,
         "calldata": calldata,
         "wallet": wallet,

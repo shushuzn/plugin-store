@@ -333,8 +333,11 @@ async fn main() {
             limit,
             search,
         } => {
+            // If --chain-id not explicitly passed, default to the global --chain value
+            // so `pendle --chain 42161 list-markets` correctly filters by Arbitrum.
+            let effective_chain_id = Some(chain_id.unwrap_or(chain));
             commands::list_markets::run(
-                chain_id,
+                effective_chain_id,
                 if active_only { Some(true) } else { None },
                 skip,
                 limit,

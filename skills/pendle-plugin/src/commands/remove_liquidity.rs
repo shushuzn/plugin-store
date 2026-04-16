@@ -60,6 +60,7 @@ pub async fn run(
 
     let (calldata, router_to) = api::extract_sdk_calldata(&sdk_resp)?;
     let approvals = api::extract_required_approvals(&sdk_resp);
+    let expected_token_out = api::extract_amount_out(&sdk_resp);
 
     // Preview gate: show SDK quote without executing
     if !confirm && !dry_run {
@@ -72,6 +73,7 @@ pub async fn run(
             "lp_address": lp_address,
             "lp_amount_in": lp_amount_in,
             "token_out": token_out,
+            "expected_token_out": expected_token_out,
             "router": router_to,
             "calldata": calldata,
             "wallet": wallet,
@@ -117,6 +119,7 @@ pub async fn run(
         "lp_amount_in": lp_amount_in,
         "token_out": token_out,
         "min_token_out": min_token_out,
+        "expected_token_out": expected_token_out,
         "router": router_to,
         "calldata": calldata,
         "wallet": wallet,
