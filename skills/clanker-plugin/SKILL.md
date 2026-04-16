@@ -200,7 +200,7 @@ waiting for confirmation before proceeding to the next:
 Do not dump all steps at once. Guide conversationally — confirm each step before moving on.
 
 **Key points for new users:**
-- `deploy-token` without `--confirm` returns an error — use `--dry-run` to preview first
+- `deploy-token` without `--confirm` and without `--dry-run` returns a safe preview (`ok:true, preview:true`) — use `--dry-run` to see full calldata
 - `--dry-run` is a **global flag** — it must come before the subcommand: `clanker --dry-run deploy-token ...`
 - The deployed token contract address is found in the Basescan tx receipt, not the CLI output
 - `claim-rewards` requires the user to have previously deployed a Clanker token and accrued LP fees
