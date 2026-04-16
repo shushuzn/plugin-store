@@ -268,7 +268,7 @@ etherfi unstake --amount 1.0 --dry-run
 
 **Output:**
 ```json
-{"ok":true,"txHash":"0xabc...","action":"unstake_request","eETHUnstaked":"1.0","eETHWei":"1000000000000000000","eETHBalance":"0.5","nftTokenId":12345,"note":"WithdrawRequestNFT #12345 minted. Withdrawals typically take 1-7 days. Track at https://app.ether.fi/portfolio — then run: etherfi unstake --claim --token-id 12345 --confirm"}
+{"ok":true,"txHash":"0xabc...","action":"unstake_request","eETHUnstaked":"1.0","eETHWei":"1000000000000000000","eETHBalance":"0.5","nftTokenId":12345,"note":"WithdrawRequestNFT #12345 minted. Withdrawals typically take 1-7 days. Check the ether.fi app to track status — then run: etherfi unstake --claim --token-id 12345 --confirm"}
 ```
 
 **Output fields:** `txHash`, `eETHUnstaked`, `eETHBalance` (post-confirmation balance), `nftTokenId` (auto-extracted from receipt; `null` if extraction fails), `note` (next step with token ID pre-filled when available).
@@ -310,7 +310,7 @@ etherfi unstake --claim --token-id 12345 --dry-run
 4. **Requires `--confirm`** to broadcast
 5. Call `WithdrawRequestNFT.claimWithdraw(tokenId)` (selector `0xb13acedd`) — burns NFT, sends ETH
 
-**Important:** If finalization check returns false, the plugin aborts with an error including a wait-time estimate (typically 1-7 days) and a link to `https://app.ether.fi/portfolio` to track status.
+**Important:** If finalization check returns false, the plugin aborts with an error including a wait-time estimate (typically 1-7 days) and a reminder to check the ether.fi app to track status.
 
 ---
 
