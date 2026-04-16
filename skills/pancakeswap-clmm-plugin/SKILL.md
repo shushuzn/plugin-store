@@ -309,7 +309,7 @@ pancakeswap-clmm --chain 56 pending-rewards --token-id 12345
 
 ### farm-pools — List Active Farming Pools
 
-List all MasterChefV3 farming pools that have active CAKE incentives (`alloc_point > 0`), sorted by reward share descending (read-only). Pools with `alloc_point = 0` are inactive and excluded.
+List all MasterChefV3 farming pools that have active CAKE incentives (`alloc_point > 0`), sorted by `alloc_point` descending. Each pool includes `reward_share_pct` (= alloc_point / total_active_alloc × 100) showing its share of CAKE emissions. Pools with `alloc_point = 0` are inactive and excluded.
 
 ```
 pancakeswap-clmm --chain 56 farm-pools
