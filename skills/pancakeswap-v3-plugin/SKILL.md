@@ -380,6 +380,40 @@ pancakeswap-v3 remove-liquidity --token-id 345455 --liquidity-pct 50 --slippage 
 
 ---
 
+### `quickstart` — Wallet status and first-step guidance
+
+Check your wallet's BNB and token balances on BNB Chain and get a suggested first command.
+
+**Trigger phrases:** "get started with pancakeswap", "pancakeswap quickstart", "what can I do on pancakeswap", "help me start on pancakeswap", "onboard pancakeswap"
+
+```
+pancakeswap-v3 quickstart [--address <wallet_address>]
+```
+
+**Parameters:**
+- `--address` — optional wallet address; defaults to the connected onchainos wallet
+
+**Output fields:** `about`, `wallet`, `assets` (bnb_balance, usdt_balance, usdc_balance, lp_positions_bsc), `status`, `suggestion`, `next_command`, `onboarding_steps` (only when status ≠ active)
+
+**States:**
+| Status | Meaning |
+|--------|---------|
+| `active` | Has V3 LP positions on BNB Chain — use `positions` to inspect |
+| `ready` | Has BNB + tokens — ready to swap or add liquidity |
+| `needs_gas` | Has tokens but insufficient BNB for gas — send ≥ 0.002 BNB |
+| `needs_funds` | Has BNB but no tokens — send ≥ 5 USDT/USDC |
+| `no_funds` | Empty wallet — send BNB and USDT/USDC to get started |
+
+**Example:**
+```
+pancakeswap-v3 quickstart
+pancakeswap-v3 quickstart --address 0xYourWallet
+```
+
+This command is read-only — no transactions, no gas. Default chain is BNB Chain (56).
+
+---
+
 ## Contract Addresses
 
 | Contract | Ethereum (1) | BSC (56) | Base (8453) | Arbitrum (42161) | Linea (59144) |
@@ -441,6 +475,7 @@ pancakeswap-v3 remove-liquidity --token-id 345455 --liquidity-pct 50 --slippage 
 ## Changelog
 
 ### v1.0.4
+- **feat**: Add `quickstart` command — checks BNB/USDT/USDC balances and LP positions on BNB Chain, returns `about` + `onboarding_steps` + `next_command` for 5 user states (active/ready/needs_gas/needs_funds/no_funds).
 - **fix**: Add `ethereum-rpc.publicnode.com` and `linea-rpc.publicnode.com` to `plugin.yaml` `api_calls` — both chains were supported since v1.0.0 but their RPC domains were missing from the CI security whitelist.
 
 ### v1.0.0 (2026-04-12)
