@@ -1,13 +1,15 @@
-# hyperliquid
-Trade perpetual futures on Hyperliquid L1 with full on-chain settlement, offering CEX-like speed with DEX transparency.
+
+# hyperliquid-plugin
+
+Trade perpetuals on Hyperliquid DEX with full position management, spot trading, and cross-chain USDC deposits.
 
 ## Highlights
-- Check open perpetual positions and unrealized PnL across 100+ markets
-- Get real-time mid prices for all Hyperliquid perpetual markets
-- Place market and limit orders with optional stop-loss/take-profit brackets
-- One-command position closing with automatic size and direction detection
-- Set stop-loss and take-profit orders on existing positions
-- Cancel open orders by order ID with EIP-712 signature verification
-- Deposit USDC from Arbitrum via official bridge contract with permit signatures
-- All trades settled in USDC on Hyperliquid L1 (chain ID 999)
+- Place market/limit perpetual orders with optional stop-loss and take-profit brackets
+- Check open positions, unrealized PnL, and margin usage across perp and spot accounts
+- One-command position closing and TP/SL management on existing positions
+- Real-time price feeds for all Hyperliquid perpetual and spot markets
+- Cross-chain USDC deposits from Arbitrum with automatic bridge integration
+- Transfer funds between perpetual and spot accounts on Hyperliquid L1
+- Withdraw USDC back to Arbitrum or other supported chains
+- Automatic leverage adjustment and margin mode selection (cross/isolated)
 
