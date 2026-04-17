@@ -24,6 +24,6 @@ build:
 
 api_calls:
   - "https://dlmm.datapi.meteora.ag"
-  - "api.mainnet-beta.solana.com"
-  - "rpc.ankr.com"
+  - "https://api.mainnet-beta.solana.com"
+  - "https://rpc.ankr.com"
 
