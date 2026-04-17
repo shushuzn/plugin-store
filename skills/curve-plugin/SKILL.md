@@ -1,7 +1,7 @@
 ---
 name: curve-plugin
 description: "Curve DEX plugin for swapping stablecoins and managing liquidity on Curve Finance. Trigger phrases: swap on Curve, Curve swap, add liquidity Curve, remove liquidity Curve, Curve pool APY, Curve pools, get Curve quote."
-version: "0.2.8"
+version: "0.2.9"
 author: "GeoGu360"
 tags:
   - dex
@@ -24,7 +24,7 @@ tags:
 # Check for skill updates (1-hour cache)
 UPDATE_CACHE="$HOME/.plugin-store/update-cache/curve-plugin"
 CACHE_MAX=3600
-LOCAL_VER="0.2.8"
+LOCAL_VER="0.2.9"
 DO_CHECK=true
 
 if [ -f "$UPDATE_CACHE" ]; then
@@ -97,7 +97,7 @@ case "${OS}_${ARCH}" in
   mingw*_aarch64|msys*_aarch64|cygwin*_aarch64)  TARGET="aarch64-pc-windows-msvc"; EXT=".exe" ;;
 esac
 mkdir -p ~/.local/bin
-curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/curve-plugin@0.2.8/curve-plugin-${TARGET}${EXT}" -o ~/.local/bin/.curve-plugin-core${EXT}
+curl -fsSL "https://github.com/okx/plugin-store/releases/download/plugins/curve-plugin@0.2.9/curve-plugin-${TARGET}${EXT}" -o ~/.local/bin/.curve-plugin-core${EXT}
 chmod +x ~/.local/bin/.curve-plugin-core${EXT}
 
 # Symlink CLI name to universal launcher
@@ -105,7 +105,7 @@ ln -sf "$LAUNCHER" ~/.local/bin/curve-plugin
 
 # Register version
 mkdir -p "$HOME/.plugin-store/managed"
-echo "0.2.8" > "$HOME/.plugin-store/managed/curve-plugin"
+echo "0.2.9" > "$HOME/.plugin-store/managed/curve-plugin"
 ```
 
 ### Report install (auto-injected, runs once)
@@ -125,7 +125,7 @@ if [ ! -f "$REPORT_FLAG" ]; then
   # Report to Vercel stats
   curl -s -X POST "https://plugin-store-dun.vercel.app/install" \
     -H "Content-Type: application/json" \
-    -d '{"name":"curve-plugin","version":"0.2.8"}' >/dev/null 2>&1 || true
+    -d '{"name":"curve-plugin","version":"0.2.9"}' >/dev/null 2>&1 || true
   # Report to OKX API (with HMAC-signed device token)
   curl -s -X POST "https://www.okx.com/priapi/v1/wallet/plugins/download/report" \
     -H "Content-Type: application/json" \
@@ -139,157 +139,46 @@ fi
 
 ## Proactive Onboarding
 
-When a user signals they are **new or just installed** this plugin — e.g. "I just installed curve",
-"how do I get started with Curve", "what can I do with Curve" — **do not wait for them to ask
-specific questions.** Proactively walk them through the Quickstart in order, one step at a time,
-waiting for confirmation before proceeding to the next:
+When a user is new or asks "how do I get started", call `curve quickstart` first. This checks their actual wallet state and returns a personalised `next_command` and `onboarding_steps`.
 
-1. **Choose chain** — ask the user which chain they want to use. Supported: Ethereum (1), Arbitrum (42161),
-   Base (8453), Polygon (137), BSC (56). Use their answer for `<CHAIN>` in all subsequent steps.
-   If unsure, suggest Ethereum for stablecoin swaps (deepest liquidity) or Base for low gas fees.
-2. **Check wallet** — run `onchainos wallet addresses --chain <CHAIN>`. If no address, direct them to
-   connect via `onchainos wallet login`. Do not proceed to write operations until a wallet is confirmed.
-3. **Check balance** — run `onchainos wallet balance --chain <CHAIN>`. You need at least a small amount
-   of the token you want to swap (e.g. 0.5 USDC, 0.001 stETH). If insufficient, explain what's
-   needed and how to fund (bridge, CEX withdrawal, or swap).
-4. **Explore pools** — run `curve --chain <CHAIN> get-pools` to show available pools. Ask what tokens
-   they hold and want to swap. Use `get-pool-info --pool <address>` for APY / fee details on a
-   specific pool. Use `quote` to preview expected output before committing.
-5. **Preview first write** — run the write command (e.g. `swap`) **without `--confirm`** so the
-   user sees the preview JSON (including calldata and expected output) before any on-chain action.
-   Confirm the `"preview": true` field is present and explain what it means.
-6. **Execute** — once the user confirms, re-run the same command **with `--confirm`** to broadcast.
-   Note: ERC-20 tokens (USDC, DAI, USDT) require an approval tx that fires first; the plugin waits
-   for approval to confirm before submitting the swap.
+```bash
+curve quickstart
+```
 
-**Important caveats discovered during live testing:**
-- The `--wallet` flag is required for all write commands (preview and execute). The plugin cannot
-  resolve the active onchainos wallet automatically — always pass `--wallet <address>`.
+Parse the JSON output:
+- `status: "active"` → has existing positions/balance; run relevant view command
+- `status: "ready"` → wallet funded; follow `next_command`
+- `status: "needs_gas"` → has tokens but no gas; ask user to send ETH/BNB
+- `status: "needs_funds"` → has gas but no tokens; show `onboarding_steps`
+- `status: "no_funds"` → wallet empty; show `onboarding_steps`
+
+**Key caveats:**
+- The `--wallet` flag is required for all write commands (preview and execute). The plugin cannot resolve the active onchainos wallet automatically — always pass `--wallet <address>`.
 - Unsupported chains (any chain not in 1, 42161, 8453, 137, 56) return a clear error JSON and exit 1.
-
-Do not dump all steps at once. Guide conversationally — confirm each step before moving on.
+- ERC-20 tokens (USDC, DAI, USDT) require an approval tx before swap; the plugin waits for approval before submitting the swap.
 
 ---
 
-## Quickstart
-
-New to curve-plugin? Follow these steps to go from zero to your first Curve swap on Ethereum.
-
-### Step 1 — Connect your wallet
+## Quickstart Command
 
 ```bash
-onchainos wallet login your@email.com
-onchainos wallet addresses --chain 1
+curve quickstart [--chain <ID>]
 ```
 
-Confirm you see your Ethereum address before continuing.
+Returns a personalised onboarding JSON based on the wallet's actual balances.
 
-### Step 2 — Check your balance
+### Output Fields
 
-```bash
-onchainos wallet balance --chain 1
-```
-
-Minimum recommended: any stablecoin (USDC, DAI, USDT) or LST (stETH, weETH) with a non-dust
-balance. For stablecoins, even $0.50 is sufficient for a test swap. If your balance is zero,
-bridge ETH or transfer tokens to Ethereum mainnet first.
-
-### Step 3 — Browse available pools
-
-```bash
-curve --chain 1 get-pools
-```
-
-Returns the top 20 pools by TVL. Note the `address` field — you'll need it for add/remove
-liquidity. For swap, you only need the token symbols (the plugin finds the best pool automatically).
-
-For pool-specific details (fee, virtual price, coin decimals):
-
-```bash
-curve --chain 1 get-pool-info --pool 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7
-```
-
-To get a swap quote before committing:
-
-```bash
-curve --chain 1 quote --token-in USDC --token-out DAI --amount 1.0
-```
-
-### Step 4 — Preview before executing
-
-All write commands show a safe preview by default — no on-chain action until you add `--confirm`.
-The `--wallet` flag is required:
-
-```bash
-# Preview (safe — no tx sent):
-curve --chain 1 swap --token-in USDC --token-out DAI --amount 0.5 \
-  --wallet 0xYOUR_WALLET
-
-# Execute (add --confirm):
-curve --chain 1 --confirm swap --token-in USDC --token-out DAI --amount 0.5 \
-  --wallet 0xYOUR_WALLET
-```
-
-Check for `"preview": true` in the preview output and `"note": "Re-run with --confirm..."` before
-confirming.
-
-### Step 5 — Swap tokens
-
-```bash
-curve --chain 1 --confirm swap \
-  --token-in USDC \
-  --token-out DAI \
-  --amount 0.5 \
-  --slippage 0.005 \
-  --wallet 0xYOUR_WALLET
-```
-
-Expected output: `"ok": true`, `"tx_hash": "0x..."`, `"explorer": "<block_explorer_url>"`.
-
-**Note:** ERC-20 swaps (USDC, DAI, USDT) fire an approve tx first. You will see:
-`Approving USDC for Curve pool...` followed by `Approve tx: 0x... — waiting for confirmation...`
-before the swap tx broadcasts. This is expected and safe.
-
-### Step 6 — (Optional) Add liquidity to 3pool
-
-```bash
-# Preview: add 0.5 USDC to the 3pool (DAI=0, USDC=0.5, USDT=0)
-curve --chain 1 add-liquidity \
-  --pool 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7 \
-  --amounts "0,0.5,0" \
-  --wallet 0xYOUR_WALLET
-
-# Execute:
-curve --chain 1 --confirm add-liquidity \
-  --pool 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7 \
-  --amounts "0,0.5,0" \
-  --wallet 0xYOUR_WALLET
-```
-
-Amounts are in human-readable units matching pool coin order (DAI, USDC, USDT for 3pool). After
-adding liquidity, check your LP balance with:
-
-```bash
-curve --chain 1 get-balances --wallet 0xYOUR_WALLET
-```
-
-### Step 7 — (Optional) Remove liquidity
-
-```bash
-# Preview: remove all LP as USDC (coin index 1 in 3pool)
-curve --chain 1 remove-liquidity \
-  --pool 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7 \
-  --coin-index 1 \
-  --min-amounts 0 \
-  --wallet 0xYOUR_WALLET
-
-# Execute:
-curve --chain 1 --confirm remove-liquidity \
-  --pool 0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7 \
-  --coin-index 1 \
-  --min-amounts 0 \
-  --wallet 0xYOUR_WALLET
-```
+| Field | Description |
+|-------|-------------|
+| `about` | Protocol description |
+| `wallet` | Resolved wallet address |
+| `chain` | Chain name |
+| `assets` | Wallet balances (gas token + key protocol tokens) |
+| `status` | `active` / `ready` / `needs_gas` / `needs_funds` / `no_funds` |
+| `suggestion` | Human-readable state description |
+| `next_command` | The single most useful command to run next |
+| `onboarding_steps` | Ordered steps to follow |
 
 ---
 
@@ -328,6 +217,7 @@ curve --chain 1 --confirm remove-liquidity \
 
 | User Intent | Command |
 |-------------|---------|
+| "I'm new to Curve / how do I start?" | `quickstart` |
 | "Show Curve pools on Ethereum" | `get-pools` |
 | "What's the APY for Curve 3pool?" | `get-pool-info` |
 | "How much LP do I have in Curve?" | `get-balances` |

@@ -137,6 +137,13 @@ enum Commands {
         #[arg(long)]
         wallet: Option<String>,
     },
+
+    /// Check wallet state and get personalised onboarding steps
+    Quickstart {
+        /// Wallet address to check (default: onchainos active wallet)
+        #[arg(long)]
+        wallet: Option<String>,
+    },
 }
 
 #[tokio::main]
@@ -219,6 +226,16 @@ async fn main() {
                 cli.confirm,
             )
             .await
+        }
+
+        Commands::Quickstart { wallet } => {
+            match commands::quickstart::run(chain_id, wallet.as_deref()).await {
+                Ok(val) => {
+                    println!("{}", serde_json::to_string_pretty(&val).unwrap_or_default());
+                    Ok(())
+                }
+                Err(e) => Err(e),
+            }
         }
     };
 
