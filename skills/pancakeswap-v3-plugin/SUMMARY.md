@@ -1,13 +1,13 @@
-# pancakeswap
-Swap tokens and manage concentrated liquidity on PancakeSwap V3 on BNB Chain and Base.
+# pancakeswap-v3-plugin
+Swap tokens and manage concentrated liquidity on PancakeSwap V3 across BNB Chain, Base, and Arbitrum.
 
 ## Highlights
-- Token swaps via SmartRouter across all fee tiers
-- Concentrated liquidity position management (add/remove)
-- Real-time swap quotes without gas costs
-- Support for BNB Chain (BSC) and Base networks
-- Pool discovery and liquidity analytics
-- Position tracking and portfolio viewing
-- Multi-step transaction safety with user confirmations
-- Integration with onchainos wallet infrastructure
+- Token swaps via SmartRouter with optimal routing across fee tiers
+- Concentrated liquidity position management (mint/burn LP NFTs)
+- Multi-chain support: BNB Chain, Base, Arbitrum, Ethereum, and Linea
+- Real-time quotes with slippage protection and sandwich resistance
+- Balance checks and approval handling with transaction confirmation
+- LP position viewing with subgraph fallback to on-chain enumeration
+- Quickstart command for wallet assessment and onboarding guidance
+- Read-only operations for pool discovery and position inspection
 
