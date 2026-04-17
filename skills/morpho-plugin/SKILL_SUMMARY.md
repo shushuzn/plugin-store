@@ -1,26 +1,24 @@
 
-# morpho -- Skill Summary
+# morpho-plugin -- Skill Summary
 
 ## Overview
-The Morpho skill enables interaction with Morpho's permissionless lending protocol, which operates on two layers: Morpho Blue isolated lending markets and MetaMorpho ERC-4626 vaults curated by risk managers like Gauntlet and Steakhouse. Users can supply assets to earn yield, borrow against collateral, manage positions, and claim rewards across Ethereum Mainnet and Base networks with over $5B in total value locked.
+This skill enables interaction with Morpho, a permissionless lending protocol with over $5B TVL. It provides access to both Morpho Blue isolated lending markets and MetaMorpho curated vaults across Ethereum and Base networks. Users can supply assets to earn yield, borrow against collateral, manage positions with health factor monitoring, and claim rewards. The skill prioritizes safety with mandatory transaction previews and user confirmation before any funds movement.
 
 ## Usage
-Install with `npx skills add okx/plugin-store-community --skill morpho`, ensure your wallet is connected via `onchainos wallet login`, then use commands like `morpho positions` to view your portfolio or `morpho markets --asset USDC` to browse lending opportunities. All write operations use dry-run simulation first and require explicit user confirmation before executing on-chain transactions.
+Run pre-flight dependency checks once per session, then use commands like `morpho positions` to view your portfolio, `morpho markets --asset USDC` to browse lending opportunities, or `morpho supply --vault <address> --asset USDC --amount 1000` to deposit (always preview first without --confirm, then re-run with --confirm after user approval).
 
 ## Commands
-| Command | Description |
-|---------|-------------|
-| `morpho positions` | View your positions and health factors across Blue markets and MetaMorpho vaults |
-| `morpho markets [--asset SYMBOL]` | List Morpho Blue markets with APYs, optionally filtered by asset |
-| `morpho vaults [--asset SYMBOL]` | List MetaMorpho vaults with APYs and curators, optionally filtered by asset |
-| `morpho supply --vault ADDR --asset SYMBOL --amount N` | Supply assets to a MetaMorpho vault |
-| `morpho withdraw --vault ADDR --asset SYMBOL --amount N` | Withdraw from a MetaMorpho vault |
-| `morpho borrow --market-id HEX --amount N` | Borrow from a Morpho Blue market |
-| `morpho repay --market-id HEX --amount N` | Repay Morpho Blue debt |
-| `morpho supply-collateral --market-id HEX --amount N` | Supply collateral to a Blue market |
-| `morpho claim-rewards` | Claim Merkl rewards |
-
-Global flags: `--chain CHAIN_ID` (1 for Ethereum, 8453 for Base), `--dry-run`, `--from ADDRESS`
+- `morpho positions` - View all Morpho Blue and MetaMorpho positions with health factors
+- `morpho markets [--asset SYMBOL]` - List lending markets with APYs and utilization rates
+- `morpho vaults [--asset SYMBOL]` - Browse MetaMorpho vaults with curators and yields
+- `morpho supply --vault <addr> --asset <symbol> --amount <n> [--confirm]` - Deposit to MetaMorpho vault
+- `morpho withdraw --vault <addr> --asset <symbol> --amount <n>|--all [--confirm]` - Withdraw from vault
+- `morpho borrow --market-id <hex> --amount <n> [--confirm]` - Borrow from Morpho Blue market
+- `morpho repay --market-id <hex> --amount <n>|--all [--confirm]` - Repay debt (dust-free with --all)
+- `morpho supply-collateral --market-id <hex> --amount <n> [--confirm]` - Add collateral
+- `morpho withdraw-collateral --market-id <hex> --amount <n>|--all [--confirm]` - Remove collateral
+- `morpho claim-rewards [--confirm]` - Claim Merkl incentive rewards
+- Global flags: `--chain <1|8453>`, `--from <addr>`, `--dry-run`
 
 ## Triggers
-Activate this skill when users mention lending, borrowing, or earning yield on Morpho, MetaMorpho vaults, Morpho Blue markets, health factors, or when they want to supply collateral, repay loans, or claim rewards on the Morpho protocol. Also trigger for phrases like "morpho positions", "metamorpho yield", or "borrow from morpho blue".
+Activate this skill when users mention Morpho lending/borrowing operations, earning yield on Morpho vaults, checking Morpho positions or health factors, viewing lending market rates, or claiming Morpho rewards. Also trigger for phrases like "supply to metamorpho", "borrow from morpho blue", or "morpho interest rates".
